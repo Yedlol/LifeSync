@@ -7,5 +7,7 @@ class FinanceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const PlaceholderScreen(
-      title: 'Finance', icon: Icons.account_balance_wallet);
+    title: 'Finance',
+    icon: Icons.account_balance_wallet,
+  );
 }

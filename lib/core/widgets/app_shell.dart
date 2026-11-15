@@ -13,8 +13,11 @@ class _Tab {
 const _tabs = [
   _Tab('Dashboard', Icons.dashboard_outlined, Icons.dashboard),
   _Tab('Tasks', Icons.view_kanban_outlined, Icons.view_kanban),
-  _Tab('Finance', Icons.account_balance_wallet_outlined,
-      Icons.account_balance_wallet),
+  _Tab(
+    'Finance',
+    Icons.account_balance_wallet_outlined,
+    Icons.account_balance_wallet,
+  ),
   _Tab('Settings', Icons.settings_outlined, Icons.settings),
 ];
 

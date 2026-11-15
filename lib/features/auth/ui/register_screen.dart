@@ -43,8 +43,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           .read(authRepositoryProvider)
           .signUp(_email.text.trim(), _password.text);
       if (!signedIn && mounted) {
-        setState(() => _info =
-            'Account created. Check your email to confirm, then log in.');
+        setState(
+          () => _info =
+              'Account created. Check your email to confirm, then log in.',
+        );
       }
     } catch (e) {
       if (mounted) setState(() => _error = AuthRepository.friendlyError(e));
@@ -77,8 +79,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               decoration: InputDecoration(
                 labelText: 'Password',
                 suffixIcon: IconButton(
-                  icon:
-                      Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                  icon: Icon(
+                    _obscure ? Icons.visibility : Icons.visibility_off,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),

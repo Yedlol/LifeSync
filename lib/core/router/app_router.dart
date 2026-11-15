@@ -66,21 +66,35 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (c, s, shell) => AppShell(shell: shell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/dashboard',
-                builder: (c, s) => const DashboardScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/tasks', builder: (c, s) => const TasksScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/finance', builder: (c, s) => const FinanceScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-                path: '/settings', builder: (c, s) => const SettingsScreen()),
-          ]),
+                builder: (c, s) => const DashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/tasks', builder: (c, s) => const TasksScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/finance',
+                builder: (c, s) => const FinanceScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (c, s) => const SettingsScreen(),
+              ),
+            ],
+          ),
         ],
       ),
     ],

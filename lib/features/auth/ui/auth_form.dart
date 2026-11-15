@@ -38,13 +38,20 @@ class AuthScaffold extends StatelessWidget {
                 children: [
                   const Icon(Icons.sync_alt, size: 48, color: kPrimary),
                   const SizedBox(height: 8),
-                  Text('LifeSync',
-                      textAlign: TextAlign.center,
-                      style: text.headlineMedium?.copyWith(
-                          color: kPrimary, fontWeight: FontWeight.bold)),
+                  Text(
+                    'LifeSync',
+                    textAlign: TextAlign.center,
+                    style: text.headlineMedium?.copyWith(
+                      color: kPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 24),
-                  Text(title,
-                      textAlign: TextAlign.center, style: text.titleLarge),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: text.titleLarge,
+                  ),
                   const SizedBox(height: 16),
                   child,
                 ],
@@ -72,9 +79,12 @@ class MessageBanner extends StatelessWidget {
         color: isInfo ? cs.primaryContainer : cs.errorContainer,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(message,
-          style: TextStyle(
-              color: isInfo ? cs.onPrimaryContainer : cs.onErrorContainer)),
+      child: Text(
+        message,
+        style: TextStyle(
+          color: isInfo ? cs.onPrimaryContainer : cs.onErrorContainer,
+        ),
+      ),
     );
   }
 }
@@ -83,5 +93,8 @@ class ButtonSpinner extends StatelessWidget {
   const ButtonSpinner({super.key});
   @override
   Widget build(BuildContext context) => const SizedBox(
-      height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2));
+    height: 20,
+    width: 20,
+    child: CircularProgressIndicator(strokeWidth: 2),
+  );
 }
