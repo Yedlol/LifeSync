@@ -17,7 +17,10 @@ salary/overtime). Single user. Syncs between Android phone and Windows PC.
 - Shared UI helpers: core/widgets/empty_state.dart (every list needs one),
   core/widgets/skeletons.dart, core/utils/haptics.dart (phone only),
   Sp spacing scale (4/8/12/16/24) + kRadius 12 in core/theme/app_theme.dart
-- Notifications: flutter_local_notifications (later phase)
+- Reminders: flutter_local_notifications + timezone (Asia/Kuala_Lumpur) on Android and
+  Windows (no-op on web); shared_preferences for per-device reminder settings.
+  Code in core/notifications/ (planner is pure + tested; NotificationService is the
+  only thing that touches the plugin). Android uses inexact scheduling.
 - Currency RM (MYR), timezone Asia/Kuala_Lumpur
 
 ## Database (already created in Supabase — do NOT write SQL unless asked)

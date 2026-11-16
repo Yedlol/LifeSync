@@ -103,6 +103,7 @@ class SelectedMonthNotifier extends Notifier<DateTime> {
 
   void shift(int months) =>
       state = DateTime(state.year, state.month + months, 1);
+  void set(DateTime month) => state = monthStart(month);
   void reset() => state = monthStart(DateTime.now());
   bool get isCurrent => state == monthStart(DateTime.now());
 }

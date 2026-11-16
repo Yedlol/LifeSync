@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../utils/breakpoints.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../notifications/notification_router.dart';
+import '../notifications/reminder_scheduler.dart';
+import '../../features/tasks/providers/tasks_notifier.dart';
 
 class _Tab {
   const _Tab(this.label, this.icon, this.selectedIcon);
@@ -22,15 +26,42 @@ const _tabs = [
   _Tab('Settings', PhosphorIconsRegular.gear, PhosphorIconsFill.gear),
 ];
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.shell});
   final StatefulNavigationShell shell;
+
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  StatefulNavigationShell get shell => widget.shell;
 
   void _go(int i) =>
       shell.goBranch(i, initialLocation: i == shell.currentIndex);
 
   @override
+  void initState() {
+    super.initState();
+    // A notification may have launched the app.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPending());
+  }
+
+  void _openPending() {
+    if (!mounted) return;
+    final payload = ref.read(pendingReminderProvider);
+    if (payload == null) return;
+    if (handleReminderPayload(context, ref, payload)) {
+      ref.read(pendingReminderProvider.notifier).clear();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ref.watch(reminderSchedulerProvider); // reschedules reminders on changes
+    ref.listen(pendingReminderProvider, (_, _) => _openPending());
+    // A tapped task reminder may be waiting for tasks to load.
+    ref.listen(tasksProvider, (_, _) => _openPending());
     if (isDesktop(context)) {
       return Scaffold(
         body: Row(

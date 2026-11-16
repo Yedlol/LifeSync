@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
 import 'salary_settings_form.dart';
 import '../../../core/theme/theme_mode_provider.dart';
+import 'reminders_section.dart';
+import '../../../core/notifications/notification_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -27,6 +29,8 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           const _AppearanceCard(),
           const SizedBox(height: 16),
+          const RemindersSection(),
+          const SizedBox(height: 16),
           Card(
             child: Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -47,7 +51,13 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            onPressed: () async {
+              // Don't leave this account's reminders on the device.
+              try {
+                await ref.read(notificationServiceProvider).cancelAll();
+              } catch (_) {}
+              await ref.read(authRepositoryProvider).signOut();
+            },
             icon: const Icon(PhosphorIconsRegular.signOut),
             label: const Text('Logout'),
           ),

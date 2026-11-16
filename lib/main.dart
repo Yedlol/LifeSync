@@ -7,6 +7,7 @@ import 'core/router/app_router.dart';
 import 'core/supabase/supabase_config.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_mode_provider.dart';
+import 'core/notifications/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,7 @@ Future<void> main() async {
     return;
   }
   await initSupabase();
+  await LocalNotificationService.instance.init();
   runApp(const ProviderScope(child: LifeSyncApp()));
 }
 
