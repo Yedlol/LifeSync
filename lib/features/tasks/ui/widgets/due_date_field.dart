@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/date_format.dart';
@@ -22,17 +23,17 @@ class DueDateField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       onTap: () => _pick(context),
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: 'Due date',
-          prefixIcon: const Icon(Icons.event_outlined),
+          prefixIcon: const Icon(PhosphorIconsRegular.calendarBlank),
           suffixIcon: value == null
               ? null
               : IconButton(
                   tooltip: 'Clear due date',
-                  icon: const Icon(Icons.clear),
+                  icon: const Icon(PhosphorIconsRegular.x),
                   onPressed: () => onChanged(null),
                 ),
         ),

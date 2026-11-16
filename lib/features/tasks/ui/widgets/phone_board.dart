@@ -10,6 +10,10 @@ import 'task_actions.dart';
 import 'task_card.dart';
 import 'task_card_menu.dart';
 import 'task_tags.dart';
+import '../../../../core/utils/haptics.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/swipe_actions.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Phone: tab bar with counts + one swipeable page per column.
 class PhoneBoard extends StatelessWidget {
@@ -89,12 +93,17 @@ class PhoneColumn extends ConsumerWidget {
 
     if (tasks.isEmpty) {
       return ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            'No tasks',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade500),
+          EmptyState(
+            icon: PhosphorIconsRegular.checkSquareOffset,
+            message: 'Nothing in ${status.label} yet.',
+            actionLabel: 'Add task',
+            onAction: () => showTaskForm(
+              context,
+              initialStatus: status,
+              initialProjectId: ref.read(taskFilterProvider).projectId,
+            ),
           ),
           ?footer,
         ],
@@ -104,6 +113,7 @@ class PhoneColumn extends ConsumerWidget {
     return ReorderableListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       buildDefaultDragHandles: false,
+      onReorderStart: (_) => hapticLight(),
       itemCount: tasks.length,
       footer: footer,
       onReorder: (from, to) => _onReorder(context, ref, from, to),
@@ -113,21 +123,37 @@ class PhoneColumn extends ConsumerWidget {
   }
 }
 
-class _PhoneCard extends StatelessWidget {
+class _PhoneCard extends ConsumerWidget {
   const _PhoneCard({super.key, required this.index, required this.task});
   final int index;
   final Task task;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ReorderableDelayedDragStartListener(
       index: index,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: TaskCard(
-          task: task,
-          onTap: () => showTaskForm(context, task: task),
-          trailing: TaskCardMenu(task: task),
+        child: SwipeActions(
+          actions: [
+            SwipeAction(
+              label: 'Move to',
+              icon: PhosphorIconsRegular.arrowsLeftRight,
+              color: Theme.of(context).colorScheme.primary,
+              onPressed: () => showMoveToSheet(context, ref, task),
+            ),
+            SwipeAction(
+              label: 'Delete',
+              icon: PhosphorIconsRegular.trash,
+              color: Theme.of(context).colorScheme.error,
+              onPressed: () => confirmDeleteTask(context, ref, task),
+            ),
+          ],
+          child: TaskCard(
+            task: task,
+            onTap: () => showTaskForm(context, task: task),
+            trailing: TaskCardMenu(task: task),
+          ),
         ),
       ),
     );

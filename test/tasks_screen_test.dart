@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_quill/flutter_quill.dart'
     show FlutterQuillLocalizations, QuillEditor, QuillSimpleToolbar;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -257,7 +258,7 @@ void main() {
       await _pump(tester, const Size(1400, 900));
       expect(find.text('First line\nSecond line'), findsOneWidget);
       expect(find.text('Third line'), findsNothing);
-      expect(find.byIcon(Icons.image_outlined), findsOneWidget);
+      expect(find.byIcon(PhosphorIconsRegular.image), findsOneWidget);
       expect(find.text('2'), findsWidgets);
     });
 
@@ -271,7 +272,7 @@ void main() {
       expect(find.byType(QuillEditor), findsOneWidget);
       expect(find.textContaining('First line'), findsWidgets);
       expect(find.byTooltip('Insert image'), findsOneWidget);
-      expect(find.byIcon(Icons.broken_image_outlined), findsNWidgets(2));
+      expect(find.byIcon(PhosphorIconsRegular.imageBroken), findsNWidgets(2));
       expect(tester.takeException(), isNull);
     });
 

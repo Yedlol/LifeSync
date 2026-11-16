@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -36,7 +37,11 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.sync_alt, size: 48, color: kPrimary),
+                  const Icon(
+                    PhosphorIconsRegular.arrowsLeftRight,
+                    size: 48,
+                    color: kPrimary,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'LifeSync',
@@ -77,7 +82,7 @@ class MessageBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isInfo ? cs.primaryContainer : cs.errorContainer,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         message,

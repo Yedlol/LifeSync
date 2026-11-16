@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/responsive_dialog.dart';
 import '../models/bill_status.dart';
 import '../providers/bill_providers.dart';
+import '../../../../core/utils/haptics.dart';
 
 /// "Mark as paid" (unpaid bill) or edit payment / "Mark as unpaid" (paid bill).
 Future<void> showMarkPaidSheet(
@@ -57,12 +59,17 @@ class _MarkPaidSheetState extends ConsumerState<_MarkPaidSheet> {
     if (d != null) setState(() => _paidAt = d);
   }
 
-  Future<void> _run(Future<void> Function() action, String error) async {
+  Future<void> _run(
+    Future<void> Function() action,
+    String error, {
+    bool celebrate = false,
+  }) async {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
     try {
       await action();
+      if (celebrate) hapticSuccess();
       navigator.pop();
     } catch (e) {
       debugPrint('bill payment failed: $e');
@@ -84,6 +91,7 @@ class _MarkPaidSheetState extends ConsumerState<_MarkPaidSheet> {
             paidAt: _paidAt,
           ),
       'Could not save payment. Check your connection.',
+      celebrate: !_editing,
     );
   }
 
@@ -142,12 +150,12 @@ class _MarkPaidSheetState extends ConsumerState<_MarkPaidSheet> {
             ),
             const SizedBox(height: 16),
             InkWell(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               onTap: _pickDate,
               child: InputDecorator(
                 decoration: const InputDecoration(
                   labelText: 'Date paid',
-                  prefixIcon: Icon(Icons.event_outlined),
+                  prefixIcon: Icon(PhosphorIconsRegular.calendarBlank),
                 ),
                 child: Text(formatDate(_paidAt)),
               ),

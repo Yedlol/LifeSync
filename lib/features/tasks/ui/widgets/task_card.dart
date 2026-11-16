@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,12 +34,11 @@ class TaskCard extends ConsumerWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      elevation: elevated ? 6 : 0,
-      color: Colors.white,
+      elevation: elevated ? 6 : null,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: InkWell(
         onTap: onTap,
@@ -97,13 +97,13 @@ class TaskCard extends ConsumerWidget {
                     TaskTag(label: project.name, color: project.colorValue),
                   if (task.imageCount > 0)
                     TaskTag(
-                      icon: Icons.image_outlined,
+                      icon: PhosphorIconsRegular.image,
                       label: '${task.imageCount}',
                       color: grey,
                     ),
                   if (task.dueAt != null)
                     TaskTag(
-                      icon: Icons.event,
+                      icon: PhosphorIconsRegular.calendarBlank,
                       label: formatShortDate(task.dueAt!),
                       color: task.isOverdue ? Colors.red.shade700 : grey,
                     ),

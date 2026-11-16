@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -80,7 +81,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 labelText: 'Password',
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscure ? Icons.visibility : Icons.visibility_off,
+                    _obscure
+                        ? PhosphorIconsRegular.eye
+                        : PhosphorIconsRegular.eyeSlash,
                   ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/supabase/supabase_config.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_mode_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,8 @@ class LifeSyncApp extends ConsumerWidget {
       title: 'LifeSync',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      themeMode: ThemeMode.light,
+      darkTheme: buildDarkTheme(),
+      themeMode: ref.watch(themeModeProvider),
       // Needed by the rich text toolbar (flutter_quill).
       localizationsDelegates: FlutterQuillLocalizations.localizationsDelegates,
       supportedLocales: FlutterQuillLocalizations.supportedLocales,

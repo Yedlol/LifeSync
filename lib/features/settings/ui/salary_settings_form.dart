@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/responsive_dialog.dart';
 import '../models/user_settings.dart';
 import '../providers/settings_providers.dart';
+import '../../../core/widgets/skeletons.dart';
 
 /// Salary settings in a dialog (desktop) / full page (phone).
 Future<void> showSalarySettings(BuildContext context) => showResponsiveDialog(
@@ -23,10 +25,7 @@ class SalarySettingsForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(userSettingsProvider);
     return async.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () => const ListSkeleton(itemCount: 3, shrink: true),
       error: (e, _) => Padding(
         padding: const EdgeInsets.all(24),
         child: Text("Couldn't load settings. Check your connection."),
@@ -206,7 +205,7 @@ class _FieldsState extends ConsumerState<_Fields> {
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               onPressed: _calculate,
-              icon: const Icon(Icons.calculate_outlined, size: 18),
+              icon: const Icon(PhosphorIconsRegular.calculator, size: 18),
               label: const Text('Calculate hourly rate'),
             ),
           ),

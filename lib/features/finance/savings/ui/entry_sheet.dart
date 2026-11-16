@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/responsive_dialog.dart';
 import '../models/saving_entry.dart';
 import '../providers/savings_providers.dart';
+import '../../../../core/utils/haptics.dart';
 
 /// Bottom sheet to add a deposit / withdrawal, or edit [entry] (its sign
 /// decides whether it is shown as a deposit or a withdrawal).
@@ -108,6 +110,7 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
           entryDate: _date,
         ),
       );
+      if (!widget.withdraw) hapticSuccess();
       navigator.pop();
       messenger
         ..hideCurrentSnackBar()
@@ -183,12 +186,12 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
               ),
               const SizedBox(height: 16),
               InkWell(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
                 onTap: _pickDate,
                 child: InputDecorator(
                   decoration: const InputDecoration(
                     labelText: 'Date',
-                    prefixIcon: Icon(Icons.event_outlined),
+                    prefixIcon: Icon(PhosphorIconsRegular.calendarBlank),
                   ),
                   child: Text(formatDate(_date)),
                 ),

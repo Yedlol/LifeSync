@@ -1,8 +1,10 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/date_format.dart';
 import '../../../../../core/utils/money.dart';
 import '../../models/goal_progress.dart';
+import '../../../../../core/widgets/motion.dart';
 
 const kSavedGreen = Color(0xFF2E7D32);
 const kLateRed = Color(0xFFD32F2F);
@@ -50,14 +52,11 @@ class GoalInfo extends StatelessWidget {
           ],
         ),
         SizedBox(height: large ? 16 : 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: progress.barValue,
-            minHeight: large ? 12 : 8,
-            backgroundColor: g.color.withValues(alpha: 0.15),
-            color: g.color,
-          ),
+        AnimatedBar(
+          value: progress.barValue,
+          minHeight: large ? 12 : 8,
+          backgroundColor: g.color.withValues(alpha: 0.15),
+          color: g.color,
         ),
         const SizedBox(height: 8),
         Row(
@@ -115,7 +114,7 @@ class _ReachedBadge extends StatelessWidget {
     child: const Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.check_circle, size: 14, color: kSavedGreen),
+        Icon(PhosphorIconsFill.checkCircle, size: 14, color: kSavedGreen),
         SizedBox(width: 4),
         Text(
           'Goal reached',

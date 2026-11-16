@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +7,8 @@ import '../../../../core/widgets/responsive_dialog.dart';
 import '../models/bill.dart';
 import '../providers/bill_providers.dart';
 import 'bill_form.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/skeletons.dart';
 
 Future<void> showManageBills(BuildContext context) => Navigator.of(
   context,
@@ -65,15 +68,20 @@ class ManageBillsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Add bill',
-            icon: const Icon(Icons.add),
+            icon: const Icon(PhosphorIconsRegular.plus),
             onPressed: () => showBillForm(context),
           ),
         ],
       ),
       body: async.isLoading && bills.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const ListSkeleton()
           : bills.isEmpty
-          ? const Center(child: Text('No bills yet.'))
+          ? EmptyState(
+              icon: PhosphorIconsRegular.receipt,
+              message: 'No bills yet. Add your first one to track it.',
+              actionLabel: 'Add bill',
+              onAction: () => showBillForm(context),
+            )
           : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 720),
@@ -114,10 +122,9 @@ class _ManageTile extends StatelessWidget {
     final dim = !bill.isActive;
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: ListTile(
         onTap: onEdit,
@@ -136,12 +143,12 @@ class _ManageTile extends StatelessWidget {
             Switch(value: bill.isActive, onChanged: onToggle),
             IconButton(
               tooltip: 'Edit',
-              icon: const Icon(Icons.edit_outlined),
+              icon: const Icon(PhosphorIconsRegular.pencilSimple),
               onPressed: onEdit,
             ),
             IconButton(
               tooltip: 'Delete',
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(PhosphorIconsRegular.trash),
               onPressed: onDelete,
             ),
           ],

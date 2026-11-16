@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +8,9 @@ import 'goal_detail_screen.dart';
 import 'goal_form.dart';
 import 'widgets/goal_card.dart';
 import 'widgets/savings_summary_card.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/motion.dart';
+import '../../../../core/widgets/skeletons.dart';
 
 /// Savings tab: summary, goal cards, "+ New goal".
 class SavingsScreen extends ConsumerWidget {
@@ -21,7 +25,7 @@ class SavingsScreen extends ConsumerWidget {
         constraints: const BoxConstraints(maxWidth: 1100),
         child: async.when(
           skipLoadingOnReload: true,
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const ListSkeleton(),
           error: (e, _) => _Error(
             onRetry: () {
               ref.invalidate(savingsGoalsProvider);
@@ -40,13 +44,19 @@ class SavingsScreen extends ConsumerWidget {
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
                   onPressed: () => showGoalForm(context),
-                  icon: const Icon(Icons.add, size: 18),
+                  icon: const Icon(PhosphorIconsRegular.plus, size: 18),
                   label: const Text('New goal'),
                 ),
               ),
               const SizedBox(height: 12),
               if (data.goals.isEmpty)
-                const _EmptyState()
+                EmptyState(
+                  icon: PhosphorIconsRegular.piggyBank,
+                  message:
+                      'No savings goals yet. Start saving for something you love.',
+                  actionLabel: 'New goal',
+                  onAction: () => showGoalForm(context),
+                )
               else
                 LayoutBuilder(
                   builder: (context, box) {
@@ -61,7 +71,7 @@ class SavingsScreen extends ConsumerWidget {
                       spacing: gap,
                       runSpacing: gap,
                       children: [
-                        for (final p in data.goals)
+                        for (final (i, p) in data.goals.indexed)
                           SizedBox(
                             width: w,
                             child: GoalCard(
@@ -77,7 +87,7 @@ class SavingsScreen extends ConsumerWidget {
                                 goalId: p.goal.id,
                                 withdraw: true,
                               ),
-                            ),
+                            ).fadeSlideIn(index: i),
                           ),
                       ],
                     );
@@ -91,29 +101,6 @@ class SavingsScreen extends ConsumerWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(32),
-    child: Column(
-      children: [
-        Icon(
-          Icons.savings_outlined,
-          size: 56,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'No savings goals yet.\nTap "New goal" to start saving for something.',
-          textAlign: TextAlign.center,
-        ),
-      ],
-    ),
-  );
-}
-
 class _Error extends StatelessWidget {
   const _Error({required this.onRetry});
   final VoidCallback onRetry;
@@ -123,7 +110,11 @@ class _Error extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+        const Icon(
+          PhosphorIconsRegular.cloudSlash,
+          size: 48,
+          color: Colors.grey,
+        ),
         const SizedBox(height: 12),
         const Text("Couldn't load savings."),
         const SizedBox(height: 12),

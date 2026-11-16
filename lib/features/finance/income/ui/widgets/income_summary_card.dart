@@ -16,7 +16,6 @@ class IncomeSummaryCard extends StatelessWidget {
         : summary.otHours.toStringAsFixed(1);
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
       color: scheme.primary.withValues(alpha: 0.06),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

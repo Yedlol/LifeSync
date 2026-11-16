@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/breakpoints.dart';
@@ -32,7 +33,7 @@ Future<T?> showResponsiveDialog<T>(
                     ),
                     IconButton(
                       tooltip: 'Close',
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(PhosphorIconsRegular.x),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
                   ],

@@ -22,11 +22,10 @@ class EntryTile extends StatelessWidget {
     final out = entry.isWithdrawal;
     final color = out ? kLateRed : kSavedGreen;
     return Card(
-      margin: const EdgeInsets.only(top: 6),
-      elevation: 0,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 16, right: 4),

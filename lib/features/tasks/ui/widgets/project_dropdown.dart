@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,7 +55,7 @@ class _ProjectDropdownState extends ConsumerState<ProjectDropdown> {
           value: _newProject,
           child: Row(
             children: [
-              Icon(Icons.add, size: 18),
+              Icon(PhosphorIconsRegular.plus, size: 18),
               SizedBox(width: 8),
               Text('New project'),
             ],

@@ -49,12 +49,10 @@ class BillTile extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
-      color: Colors.white,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: InkWell(
         onTap: onTap,
@@ -103,7 +101,7 @@ class BillTile extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       statusLabel(entry),

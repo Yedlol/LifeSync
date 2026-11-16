@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -162,12 +163,12 @@ class _OvertimeFormState extends ConsumerState<OvertimeForm> {
             gap,
           ],
           InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             onTap: _pickDate,
             child: InputDecorator(
               decoration: const InputDecoration(
                 labelText: 'Date',
-                prefixIcon: Icon(Icons.event_outlined),
+                prefixIcon: Icon(PhosphorIconsRegular.calendarBlank),
               ),
               child: Text(formatDate(_date)),
             ),
@@ -189,12 +190,12 @@ class _OvertimeFormState extends ConsumerState<OvertimeForm> {
                 children: [
                   IconButton(
                     tooltip: '−0.5 h',
-                    icon: const Icon(Icons.remove_circle_outline),
+                    icon: const Icon(PhosphorIconsRegular.minusCircle),
                     onPressed: () => _step(-0.5),
                   ),
                   IconButton(
                     tooltip: '+0.5 h',
-                    icon: const Icon(Icons.add_circle_outline),
+                    icon: const Icon(PhosphorIconsRegular.plusCircle),
                     onPressed: () => _step(0.5),
                   ),
                 ],
@@ -284,7 +285,7 @@ class _Preview extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         '${_trim(hours)} h × ${formatRm(rate)} × ${_trim(multiplier)} = ${formatRm(amount)}',
@@ -303,12 +304,12 @@ class _RateWarning extends StatelessWidget {
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: Colors.orange.shade50,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       border: Border.all(color: Colors.orange.shade300),
     ),
     child: Row(
       children: [
-        Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800),
+        Icon(PhosphorIconsRegular.warning, color: Colors.orange.shade800),
         const SizedBox(width: 8),
         const Expanded(
           child: Text(

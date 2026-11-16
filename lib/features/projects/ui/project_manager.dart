@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +6,8 @@ import '../../../core/widgets/responsive_dialog.dart';
 import '../models/project.dart';
 import '../providers/project_providers.dart';
 import 'project_edit_dialog.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/skeletons.dart';
 
 Future<void> showProjectManager(BuildContext context) => showResponsiveDialog(
   context,
@@ -47,22 +50,25 @@ class _ProjectManagerState extends ConsumerState<ProjectManager> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: OutlinedButton.icon(
             onPressed: () => showProjectEditDialog(context),
-            icon: const Icon(Icons.add),
+            icon: const Icon(PhosphorIconsRegular.plus),
             label: const Text('New project'),
           ),
         ),
         Flexible(
           child: async.isLoading && all.isEmpty
-              ? const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                )
+              ? const ListSkeleton(itemCount: 3, shrink: true)
               : ListView(
                   shrinkWrap: true,
                   padding: const EdgeInsets.only(bottom: 16),
                   children: [
                     if (active.isEmpty)
-                      const ListTile(title: Text('No projects yet.')),
+                      EmptyState(
+                        compact: true,
+                        icon: PhosphorIconsRegular.folderSimple,
+                        message: 'No projects yet. Group your tasks into one.',
+                        actionLabel: 'New project',
+                        onAction: () => showProjectEditDialog(context),
+                      ),
                     for (final p in active)
                       _ProjectTile(
                         project: p,
@@ -75,7 +81,9 @@ class _ProjectManagerState extends ConsumerState<ProjectManager> {
                         dense: true,
                         title: Text('Archived (${archived.length})'),
                         trailing: Icon(
-                          _showArchived ? Icons.expand_less : Icons.expand_more,
+                          _showArchived
+                              ? PhosphorIconsRegular.caretUp
+                              : PhosphorIconsRegular.caretDown,
                         ),
                         onTap: () =>
                             setState(() => _showArchived = !_showArchived),
@@ -121,13 +129,15 @@ class _ProjectTile extends StatelessWidget {
         children: [
           IconButton(
             tooltip: 'Edit',
-            icon: const Icon(Icons.edit_outlined),
+            icon: const Icon(PhosphorIconsRegular.pencilSimple),
             onPressed: onEdit,
           ),
           IconButton(
             tooltip: archived ? 'Unarchive' : 'Archive',
             icon: Icon(
-              archived ? Icons.unarchive_outlined : Icons.archive_outlined,
+              archived
+                  ? PhosphorIconsRegular.arrowCounterClockwise
+                  : PhosphorIconsRegular.archive,
             ),
             onPressed: onArchive,
           ),

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,7 +75,10 @@ class _Broken extends StatelessWidget {
       height: 120,
       color: Colors.grey.shade200,
       alignment: Alignment.center,
-      child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade600),
+      child: Icon(
+        PhosphorIconsRegular.imageBroken,
+        color: Colors.grey.shade600,
+      ),
     ),
   );
 }

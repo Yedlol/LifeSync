@@ -7,7 +7,16 @@ import 'package:lifesync/features/finance/bills/data/bill_repository.dart';
 import 'package:lifesync/features/finance/bills/models/bill.dart';
 import 'package:lifesync/features/finance/bills/models/bill_payment.dart';
 import 'package:lifesync/features/finance/bills/providers/bill_providers.dart';
+import 'package:lifesync/features/finance/income/data/income_repository.dart';
+import 'package:lifesync/features/finance/income/models/income_entry.dart';
+import 'package:lifesync/features/finance/income/providers/income_providers.dart';
+import 'package:lifesync/features/finance/savings/data/savings_repository.dart';
+import 'package:lifesync/features/finance/savings/models/saving_entry.dart';
+import 'package:lifesync/features/finance/savings/models/savings_goal.dart';
+import 'package:lifesync/features/finance/savings/providers/savings_providers.dart';
 import 'package:lifesync/features/finance/ui/finance_screen.dart';
+import 'package:lifesync/features/settings/data/settings_repository.dart';
+import 'package:lifesync/features/settings/models/user_settings.dart';
 
 final _now = DateTime.now();
 final _thisMonth = DateTime(_now.year, _now.month, 1);
@@ -89,7 +98,29 @@ class _FakeBills extends BillRepository {
   }
 }
 
-Future<void> _pump(WidgetTester tester, Size size) async {
+class _FakeIncome extends IncomeRepository {
+  @override
+  Stream<List<IncomeEntry>> watchEntries() => Stream.value(const []);
+}
+
+class _FakeSavings extends SavingsRepository {
+  @override
+  Stream<List<SavingsGoal>> watchGoals() => Stream.value(const []);
+
+  @override
+  Stream<List<SavingEntry>> watchEntries() => Stream.value(const []);
+}
+
+class _FakeSettings extends SettingsRepository {
+  @override
+  Stream<UserSettings> watch() => Stream.value(const UserSettings());
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  Size size, {
+  bool openBills = true,
+}) async {
   _calls.clear();
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -99,23 +130,35 @@ Future<void> _pump(WidgetTester tester, Size size) async {
       overrides: [
         currentEmailProvider.overrideWith((_) => Stream.value('me@test')),
         billRepositoryProvider.overrideWithValue(_FakeBills()),
+        incomeRepositoryProvider.overrideWithValue(_FakeIncome()),
+        savingsRepositoryProvider.overrideWithValue(_FakeSavings()),
+        settingsRepositoryProvider.overrideWithValue(_FakeSettings()),
       ],
       child: MaterialApp(theme: buildAppTheme(), home: const FinanceScreen()),
     ),
   );
   await tester.pumpAndSettle();
+  if (openBills) {
+    await tester.tap(find.widgetWithText(Tab, 'Bills'));
+    await tester.pumpAndSettle();
+  }
 }
 
 void main() {
-  testWidgets('finance has Bills / Savings / Income tabs', (tester) async {
-    await _pump(tester, const Size(1000, 800));
-    expect(find.text('Bills'), findsOneWidget);
-    await tester.tap(find.text('Savings'));
+  testWidgets('finance has Overview / Bills / Savings / Income tabs', (
+    tester,
+  ) async {
+    await _pump(tester, const Size(1000, 800), openBills: false);
+    expect(find.text('LEFT THIS MONTH'), findsOneWidget); // Overview first
+    await tester.tap(find.widgetWithText(Tab, 'Bills'));
     await tester.pumpAndSettle();
-    expect(find.text('Savings — coming soon'), findsOneWidget);
-    await tester.tap(find.text('Income'));
+    expect(find.text('Total this month'), findsOneWidget);
+    await tester.tap(find.widgetWithText(Tab, 'Savings'));
     await tester.pumpAndSettle();
-    expect(find.text('Income — coming soon'), findsOneWidget);
+    expect(find.textContaining('No savings goals yet'), findsOneWidget);
+    await tester.tap(find.widgetWithText(Tab, 'Income'));
+    await tester.pumpAndSettle();
+    expect(find.text('TOTAL INCOME'), findsOneWidget);
   });
 
   testWidgets('month list, summary and statuses', (tester) async {

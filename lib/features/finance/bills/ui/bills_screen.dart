@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,10 @@ import 'mark_paid_sheet.dart';
 import 'widgets/bill_summary_card.dart';
 import 'widgets/bill_tile.dart';
 import 'widgets/month_switcher.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/motion.dart';
+import '../../../../core/widgets/skeletons.dart';
+import '../../../../core/widgets/swipe_actions.dart';
 
 /// Bills tab: month switcher, summary, sorted list.
 class BillsScreen extends ConsumerWidget {
@@ -36,12 +41,12 @@ class BillsScreen extends ConsumerWidget {
                       minimumSize: const Size(0, 40),
                     ),
                     onPressed: () => showBillForm(context),
-                    icon: const Icon(Icons.add, size: 18),
+                    icon: const Icon(PhosphorIconsRegular.plus, size: 18),
                     label: const Text('Add bill'),
                   ),
                   OutlinedButton.icon(
                     onPressed: () => showManageBills(context),
-                    icon: const Icon(Icons.tune, size: 18),
+                    icon: const Icon(PhosphorIconsRegular.sliders, size: 18),
                     label: const Text('Manage bills'),
                   ),
                 ],
@@ -51,7 +56,7 @@ class BillsScreen extends ConsumerWidget {
             Expanded(
               child: async.when(
                 skipLoadingOnReload: true,
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const ListSkeleton(),
                 error: (e, _) => _Error(
                   onRetry: () {
                     ref.invalidate(billsProvider);
@@ -64,24 +69,46 @@ class BillsScreen extends ConsumerWidget {
                     BillSummaryCard(totals: data.totals),
                     const SizedBox(height: 12),
                     if (data.entries.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(32),
-                        child: Text(
-                          'No bills for this month.',
-                          textAlign: TextAlign.center,
-                        ),
+                      EmptyState(
+                        icon: PhosphorIconsRegular.receipt,
+                        message: 'No bills this month. Enjoy the quiet!',
+                        actionLabel: 'Add bill',
+                        onAction: () => showBillForm(context),
                       ),
-                    for (final e in data.entries)
+                    for (final (i, e) in data.entries.indexed)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: BillTile(
-                          entry: e,
-                          onTap: () => showMarkPaidSheet(
-                            context,
+                        child: SwipeActions(
+                          actions: [
+                            SwipeAction(
+                              label: e.payment == null
+                                  ? 'Mark paid'
+                                  : 'Payment',
+                              icon: PhosphorIconsRegular.checkCircle,
+                              color: kPaidGreen,
+                              onPressed: () => showMarkPaidSheet(
+                                context,
+                                entry: e,
+                                period: month,
+                              ),
+                            ),
+                            SwipeAction(
+                              label: 'Edit',
+                              icon: PhosphorIconsRegular.pencilSimple,
+                              color: Theme.of(context).colorScheme.primary,
+                              onPressed: () =>
+                                  showBillForm(context, bill: e.bill),
+                            ),
+                          ],
+                          child: BillTile(
                             entry: e,
-                            period: month,
+                            onTap: () => showMarkPaidSheet(
+                              context,
+                              entry: e,
+                              period: month,
+                            ),
                           ),
-                        ),
+                        ).fadeSlideIn(index: i),
                       ),
                   ],
                 ),
@@ -103,7 +130,11 @@ class _Error extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+        const Icon(
+          PhosphorIconsRegular.cloudSlash,
+          size: 48,
+          color: Colors.grey,
+        ),
         const SizedBox(height: 12),
         const Text("Couldn't load bills."),
         const SizedBox(height: 12),

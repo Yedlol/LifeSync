@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/goal_progress.dart';
@@ -22,11 +23,10 @@ class GoalCard extends StatelessWidget {
     final color = progress.goal.color;
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: InkWell(
         onTap: onTap,
@@ -66,7 +66,7 @@ class AddWithdrawButtons extends StatelessWidget {
         child: FilledButton.icon(
           style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
           onPressed: onAdd,
-          icon: const Icon(Icons.add, size: 18),
+          icon: const Icon(PhosphorIconsRegular.plus, size: 18),
           label: const Text('Add'),
         ),
       ),
@@ -75,7 +75,7 @@ class AddWithdrawButtons extends StatelessWidget {
         child: OutlinedButton.icon(
           style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
           onPressed: onWithdraw,
-          icon: const Icon(Icons.remove, size: 18),
+          icon: const Icon(PhosphorIconsRegular.minus, size: 18),
           label: const Text('Withdraw'),
         ),
       ),

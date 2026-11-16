@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'motion.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   const PlaceholderScreen({super.key, required this.title, required this.icon});
@@ -17,7 +18,7 @@ class PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Text('$title — coming soon'),
           ],
-        ),
+        ).fadeSlideIn(),
       ),
     );
   }

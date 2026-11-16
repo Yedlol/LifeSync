@@ -9,6 +9,14 @@ salary/overtime). Single user. Syncs between Android phone and Windows PC.
 - Routing: go_router
 - Rich text: flutter_quill + flutter_quill_extensions
 - Images: image_picker (gallery/camera/file dialog), uuid (client-side ids / file names)
+- UI polish: flex_color_scheme (theme, light + dark), google_fonts (Inter),
+  phosphor_flutter (icons — no Material Icons), flutter_animate (motion < 300ms,
+  `fadeSlideIn()` in core/widgets/motion.dart; never on drag cards),
+  flutter_slidable (phone swipe actions via core/widgets/swipe_actions.dart),
+  skeletonizer (loading placeholders instead of spinners), fl_chart (charts)
+- Shared UI helpers: core/widgets/empty_state.dart (every list needs one),
+  core/widgets/skeletons.dart, core/utils/haptics.dart (phone only),
+  Sp spacing scale (4/8/12/16/24) + kRadius 12 in core/theme/app_theme.dart
 - Notifications: flutter_local_notifications (later phase)
 - Currency RM (MYR), timezone Asia/Kuala_Lumpur
 

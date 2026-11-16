@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/utils/money.dart';
 import '../../models/bill_status.dart';
 import 'bill_tile.dart';
+import '../../../../../core/widgets/motion.dart';
 
 /// Total / Paid / Remaining for the month + progress bar.
 class BillSummaryCard extends StatelessWidget {
@@ -14,7 +15,6 @@ class BillSummaryCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
       color: scheme.primary.withValues(alpha: 0.06),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -38,14 +38,11 @@ class BillSummaryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: totals.progress,
-                minHeight: 8,
-                backgroundColor: Colors.white,
-                color: kPaidGreen,
-              ),
+            AnimatedBar(
+              value: totals.progress,
+              minHeight: 8,
+              backgroundColor: scheme.surface,
+              color: kPaidGreen,
             ),
             const SizedBox(height: 12),
             Row(

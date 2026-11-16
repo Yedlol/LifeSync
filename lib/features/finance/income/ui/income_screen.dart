@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,9 @@ import 'overtime_form.dart';
 import 'widgets/income_summary_card.dart';
 import 'widgets/income_tiles.dart';
 import 'widgets/salary_banner.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/motion.dart';
+import '../../../../core/widgets/skeletons.dart';
 
 /// Income tab: month switcher, salary banner, summary, overtime + other lists.
 class IncomeScreen extends ConsumerWidget {
@@ -72,13 +76,13 @@ class IncomeScreen extends ConsumerWidget {
                             context,
                             defaultDate: defaultDate,
                           ),
-                          icon: const Icon(Icons.add, size: 18),
+                          icon: const Icon(PhosphorIconsRegular.plus, size: 18),
                           label: const Text('Overtime'),
                         ),
                         OutlinedButton.icon(
                           onPressed: () =>
                               showIncomeForm(context, defaultDate: defaultDate),
-                          icon: const Icon(Icons.add, size: 18),
+                          icon: const Icon(PhosphorIconsRegular.plus, size: 18),
                           label: const Text('Income'),
                         ),
                       ],
@@ -86,7 +90,7 @@ class IncomeScreen extends ConsumerWidget {
                   ),
                   IconButton(
                     tooltip: 'Salary settings',
-                    icon: const Icon(Icons.settings_outlined),
+                    icon: const Icon(PhosphorIconsRegular.gear),
                     onPressed: () => showSalarySettings(context),
                   ),
                 ],
@@ -96,12 +100,16 @@ class IncomeScreen extends ConsumerWidget {
             Expanded(
               child: async.when(
                 skipLoadingOnReload: true,
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const ListSkeleton(),
                 error: (e, _) => Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+                      const Icon(
+                        PhosphorIconsRegular.cloudSlash,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 12),
                       const Text("Couldn't load income."),
                       const SizedBox(height: 12),
@@ -119,27 +127,41 @@ class IncomeScreen extends ConsumerWidget {
                     IncomeSummaryCard(summary: data.summary),
                     _Heading('Overtime'),
                     if (data.overtime.isEmpty)
-                      const _Empty('No overtime this month.'),
-                    for (final e in data.overtime)
+                      EmptyState(
+                        compact: true,
+                        icon: PhosphorIconsRegular.clock,
+                        message: 'No overtime logged this month.',
+                        actionLabel: 'Add overtime',
+                        onAction: () =>
+                            showOvertimeForm(context, defaultDate: defaultDate),
+                      ),
+                    for (final (i, e) in data.overtime.indexed)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: OvertimeTile(
                           entry: e,
                           onEdit: () => showOvertimeForm(context, entry: e),
                           onDelete: () => _delete(context, ref, e),
-                        ),
+                        ).fadeSlideIn(index: i),
                       ),
                     _Heading('Other income'),
                     if (data.others.isEmpty)
-                      const _Empty('No other income this month.'),
-                    for (final e in data.others)
+                      EmptyState(
+                        compact: true,
+                        icon: PhosphorIconsRegular.money,
+                        message: 'No other income this month.',
+                        actionLabel: 'Add income',
+                        onAction: () =>
+                            showIncomeForm(context, defaultDate: defaultDate),
+                      ),
+                    for (final (i, e) in data.others.indexed)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: IncomeTile(
                           entry: e,
                           onEdit: () => showIncomeForm(context, entry: e),
                           onDelete: () => _delete(context, ref, e),
-                        ),
+                        ).fadeSlideIn(index: i),
                       ),
                   ],
                 ),
@@ -160,16 +182,5 @@ class _Heading extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
     child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-  );
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-    child: Text(text, style: TextStyle(color: Colors.grey.shade600)),
   );
 }

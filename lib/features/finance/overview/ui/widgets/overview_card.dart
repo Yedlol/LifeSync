@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/money.dart';
@@ -28,7 +29,6 @@ class OverviewCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
       color: large ? color.withValues(alpha: 0.08) : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -75,7 +75,10 @@ class OverviewCard extends StatelessWidget {
                 ),
               ),
               if (onTap != null)
-                Icon(Icons.chevron_right, color: Colors.grey.shade500),
+                Icon(
+                  PhosphorIconsRegular.caretRight,
+                  color: Colors.grey.shade500,
+                ),
             ],
           ),
         ),

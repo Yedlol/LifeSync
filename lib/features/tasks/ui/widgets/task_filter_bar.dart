@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,12 +40,15 @@ class _TaskFilterBarState extends ConsumerState<TaskFilterBar> {
         decoration: InputDecoration(
           isDense: true,
           hintText: 'Search tasks',
-          prefixIcon: const Icon(Icons.search, size: 20),
+          prefixIcon: const Icon(
+            PhosphorIconsRegular.magnifyingGlass,
+            size: 20,
+          ),
           suffixIcon: filter.query.isEmpty
               ? null
               : IconButton(
                   tooltip: 'Clear search',
-                  icon: const Icon(Icons.clear, size: 18),
+                  icon: const Icon(PhosphorIconsRegular.x, size: 18),
                   onPressed: () {
                     _search.clear();
                     notifier.setQuery('');

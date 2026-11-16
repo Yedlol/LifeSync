@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -141,7 +142,11 @@ class ColorSwatchButton extends StatelessWidget {
               : Border.all(color: Colors.black12),
         ),
         child: selected
-            ? const Icon(Icons.check, color: Colors.white, size: 18)
+            ? const Icon(
+                PhosphorIconsRegular.check,
+                color: Colors.white,
+                size: 18,
+              )
             : null,
       ),
     );

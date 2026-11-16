@@ -1,9 +1,13 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../bills/ui/widgets/month_switcher.dart';
 import '../providers/overview_providers.dart';
 import 'widgets/overview_card.dart';
+import '../../../../core/widgets/motion.dart';
+import '../../../../core/widgets/skeletons.dart';
+import 'widgets/income_bills_chart.dart';
 
 const _green = Color(0xFF2E7D32);
 const _red = Color(0xFFD32F2F);
@@ -18,6 +22,7 @@ class OverviewScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(monthOverviewProvider);
+    final trend = ref.watch(sixMonthTrendProvider);
     final tabs = DefaultTabController.maybeOf(context);
     VoidCallback? open(int i) => tabs == null ? null : () => tabs.animateTo(i);
 
@@ -31,12 +36,16 @@ class OverviewScreen extends ConsumerWidget {
             Expanded(
               child: async.when(
                 skipLoadingOnReload: true,
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const ListSkeleton(itemCount: 6),
                 error: (e, _) => Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+                      const Icon(
+                        PhosphorIconsRegular.cloudSlash,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 12),
                       const Text("Couldn't load the overview."),
                     ],
@@ -53,34 +62,34 @@ class OverviewScreen extends ConsumerWidget {
                         label: 'Income',
                         amount: o.income,
                         color: Theme.of(context).colorScheme.primary,
-                        icon: Icons.payments_outlined,
+                        icon: PhosphorIconsRegular.money,
                         onTap: open(kTabIncome),
-                      ),
+                      ).fadeSlideIn(index: 0),
                       gap,
                       OverviewCard(
                         label: 'Bills paid',
                         amount: o.billsPaid,
                         color: _green,
-                        icon: Icons.check_circle_outline,
+                        icon: PhosphorIconsRegular.checkCircle,
                         onTap: open(kTabBills),
-                      ),
+                      ).fadeSlideIn(index: 1),
                       gap,
                       OverviewCard(
                         label: 'Bills still unpaid',
                         amount: o.billsUnpaid,
                         color: o.billsUnpaid > 0 ? _red : Colors.grey,
-                        icon: Icons.receipt_long_outlined,
+                        icon: PhosphorIconsRegular.receipt,
                         onTap: open(kTabBills),
-                      ),
+                      ).fadeSlideIn(index: 2),
                       gap,
                       OverviewCard(
                         label: 'Saved this month',
                         amount: o.saved,
                         color: o.saved < 0 ? _red : _green,
-                        icon: Icons.savings_outlined,
+                        icon: PhosphorIconsRegular.piggyBank,
                         caption: 'Deposits minus withdrawals',
                         onTap: open(kTabSavings),
-                      ),
+                      ).fadeSlideIn(index: 3),
                       gap,
                       OverviewCard(
                         label: 'LEFT THIS MONTH',
@@ -88,14 +97,18 @@ class OverviewScreen extends ConsumerWidget {
                         color: leftColor,
                         large: true,
                         caption: 'Income − bills paid − saved',
-                      ),
+                      ).fadeSlideIn(index: 4),
                       gap,
                       OverviewCard(
                         label: 'After unpaid bills',
                         amount: o.afterUnpaid,
                         color: afterColor,
                         caption: 'Left − bills still unpaid',
-                      ),
+                      ).fadeSlideIn(index: 5),
+                      if (trend.isNotEmpty) ...[
+                        gap,
+                        IncomeBillsChart(points: trend).fadeSlideIn(index: 6),
+                      ],
                     ],
                   );
                 },

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -137,17 +138,17 @@ class _GoalFormState extends ConsumerState<GoalForm> {
           ),
           gap,
           InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             onTap: _pickDeadline,
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: 'Deadline (optional)',
-                prefixIcon: const Icon(Icons.event_outlined),
+                prefixIcon: const Icon(PhosphorIconsRegular.calendarBlank),
                 suffixIcon: _deadline == null
                     ? null
                     : IconButton(
                         tooltip: 'Clear deadline',
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(PhosphorIconsRegular.x),
                         onPressed: () => setState(() => _deadline = null),
                       ),
               ),
@@ -201,7 +202,11 @@ class _Swatch extends StatelessWidget {
             : null,
       ),
       child: selected
-          ? const Icon(Icons.check, size: 18, color: Colors.white)
+          ? const Icon(
+              PhosphorIconsRegular.check,
+              size: 18,
+              color: Colors.white,
+            )
           : null,
     ),
   );

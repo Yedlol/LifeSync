@@ -8,6 +8,8 @@ import '../task_form.dart';
 import 'column_header.dart';
 import 'task_actions.dart';
 import 'task_card.dart';
+import '../../../../core/widgets/empty_state.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// One board column on desktop. The whole column is a DragTarget; the drop
 /// index is worked out from the pointer position vs. each card's midpoint.
@@ -162,13 +164,12 @@ class _DesktopColumnState extends ConsumerState<DesktopColumn> {
     }
     if (_tasks.isEmpty && dropIndex == null) {
       children.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Text(
-            'No tasks',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade500),
-          ),
+        EmptyState(
+          compact: true,
+          icon: PhosphorIconsRegular.checkSquareOffset,
+          message: 'Nothing in ${widget.status.label} yet.',
+          actionLabel: 'Add task',
+          onAction: () => showTaskForm(context, initialStatus: widget.status),
         ),
       );
     }

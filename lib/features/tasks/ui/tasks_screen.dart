@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,7 @@ import 'task_form.dart';
 import 'widgets/desktop_board.dart';
 import 'widgets/phone_board.dart';
 import 'widgets/task_filter_bar.dart';
+import '../../../core/widgets/skeletons.dart';
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
@@ -27,14 +29,14 @@ class TasksScreen extends ConsumerWidget {
         ? [
             OutlinedButton.icon(
               onPressed: () => showProjectManager(context),
-              icon: const Icon(Icons.folder_outlined, size: 18),
+              icon: const Icon(PhosphorIconsRegular.folder, size: 18),
               label: const Text('Projects'),
             ),
             const SizedBox(width: 8),
             FilledButton.icon(
               style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
               onPressed: () => _newTask(context, ref),
-              icon: const Icon(Icons.add, size: 18),
+              icon: const Icon(PhosphorIconsRegular.plus, size: 18),
               label: const Text('New task'),
             ),
             const SizedBox(width: 12),
@@ -42,12 +44,12 @@ class TasksScreen extends ConsumerWidget {
         : [
             IconButton(
               tooltip: 'Projects',
-              icon: const Icon(Icons.folder_outlined),
+              icon: const Icon(PhosphorIconsRegular.folder),
               onPressed: () => showProjectManager(context),
             ),
             IconButton(
               tooltip: 'New task',
-              icon: const Icon(Icons.add),
+              icon: const Icon(PhosphorIconsRegular.plus),
               onPressed: () => _newTask(context, ref),
             ),
           ];
@@ -60,7 +62,7 @@ class TasksScreen extends ConsumerWidget {
           Expanded(
             child: board.when(
               skipLoadingOnReload: true,
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const ListSkeleton(),
               error: (e, _) =>
                   _ErrorView(onRetry: () => ref.invalidate(tasksProvider)),
               data: (columns) => desktop
@@ -84,7 +86,11 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+          const Icon(
+            PhosphorIconsRegular.cloudSlash,
+            size: 48,
+            color: Colors.grey,
+          ),
           const SizedBox(height: 12),
           const Text("Couldn't load tasks."),
           const SizedBox(height: 12),

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,11 @@ import 'goal_form.dart';
 import 'widgets/entry_tile.dart';
 import 'widgets/goal_card.dart';
 import 'widgets/goal_info.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/motion.dart';
+import '../../../../core/widgets/skeletons.dart';
+import '../../../../core/widgets/swipe_actions.dart';
+import 'widgets/goal_balance_chart.dart';
 
 Future<void> showGoalDetail(BuildContext context, String goalId) =>
     Navigator.of(context, rootNavigator: true).push(
@@ -58,10 +64,7 @@ class GoalDetailScreen extends ConsumerWidget {
           if (context.mounted) Navigator.of(context).maybePop();
         });
       }
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return Scaffold(appBar: AppBar(), body: const ListSkeleton());
     }
 
     return Scaffold(
@@ -70,12 +73,12 @@ class GoalDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Edit goal',
-            icon: const Icon(Icons.edit_outlined),
+            icon: const Icon(PhosphorIconsRegular.pencilSimple),
             onPressed: () => showGoalForm(context, goal: progress.goal),
           ),
           IconButton(
             tooltip: 'Delete goal',
-            icon: const Icon(Icons.delete_outline),
+            icon: const Icon(PhosphorIconsRegular.trash),
             onPressed: () => _deleteGoal(context, ref),
           ),
         ],
@@ -115,16 +118,23 @@ class GoalDetailScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              if (entries.isNotEmpty) ...[
+                GoalBalanceChart(
+                  entries: entries,
+                  color: progress.goal.color,
+                ).fadeSlideIn(),
+                const SizedBox(height: 16),
+              ],
               Text('History', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 4),
               if (entries.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text(
-                    'No deposits yet. Tap "Add" to record one.',
-                    textAlign: TextAlign.center,
-                  ),
+                EmptyState(
+                  icon: PhosphorIconsRegular.coins,
+                  message: 'No deposits yet. Your first one starts the chart.',
+                  actionLabel: 'Add deposit',
+                  onAction: () =>
+                      showEntrySheet(context, goalId: goalId, withdraw: false),
                 )
               else
                 ..._history(context, ref, entries),
@@ -159,30 +169,48 @@ class GoalDetailScreen extends ConsumerWidget {
           ),
         );
       }
+      void edit() => showEntrySheet(
+        context,
+        goalId: goalId,
+        withdraw: e.isWithdrawal,
+        entry: e,
+      );
+      Future<void> delete() async {
+        final messenger = ScaffoldMessenger.of(context);
+        final ok = await confirmDialog(
+          context,
+          title: 'Delete entry?',
+          message: 'This removes the entry and updates the saved total.',
+        );
+        if (!ok) return;
+        try {
+          await ref.read(savingEntriesProvider.notifier).delete(e);
+        } catch (err) {
+          debugPrint('delete entry failed: $err');
+          showSnack(messenger, 'Could not delete. Check your connection.');
+        }
+      }
+
       out.add(
-        EntryTile(
-          entry: e,
-          onEdit: () => showEntrySheet(
-            context,
-            goalId: goalId,
-            withdraw: e.isWithdrawal,
-            entry: e,
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: SwipeActions(
+            actions: [
+              SwipeAction(
+                label: 'Edit',
+                icon: PhosphorIconsRegular.pencilSimple,
+                color: Theme.of(context).colorScheme.primary,
+                onPressed: edit,
+              ),
+              SwipeAction(
+                label: 'Delete',
+                icon: PhosphorIconsRegular.trash,
+                color: Theme.of(context).colorScheme.error,
+                onPressed: delete,
+              ),
+            ],
+            child: EntryTile(entry: e, onEdit: edit, onDelete: delete),
           ),
-          onDelete: () async {
-            final messenger = ScaffoldMessenger.of(context);
-            final ok = await confirmDialog(
-              context,
-              title: 'Delete entry?',
-              message: 'This removes the entry and updates the saved total.',
-            );
-            if (!ok) return;
-            try {
-              await ref.read(savingEntriesProvider.notifier).delete(e);
-            } catch (err) {
-              debugPrint('delete entry failed: $err');
-              showSnack(messenger, 'Could not delete. Check your connection.');
-            }
-          },
         ),
       );
     }

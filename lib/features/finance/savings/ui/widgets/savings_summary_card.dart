@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/money.dart';
 import '../../models/goal_progress.dart';
+import '../../../../../core/widgets/motion.dart';
 
 /// Total saved / total target / overall % across all goals.
 class SavingsSummaryCard extends StatelessWidget {
@@ -13,7 +14,6 @@ class SavingsSummaryCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
       color: scheme.primary.withValues(alpha: 0.06),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -34,14 +34,11 @@ class SavingsSummaryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: totals.barValue,
-                minHeight: 8,
-                backgroundColor: Colors.white,
-                color: scheme.primary,
-              ),
+            AnimatedBar(
+              value: totals.barValue,
+              minHeight: 8,
+              backgroundColor: scheme.surface,
+              color: scheme.primary,
             ),
             const SizedBox(height: 12),
             Row(

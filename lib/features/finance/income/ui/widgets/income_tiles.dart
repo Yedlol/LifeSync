@@ -24,10 +24,9 @@ class _TileShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     margin: EdgeInsets.zero,
-    elevation: 0,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-      side: BorderSide(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(12),
+      side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
     ),
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 16, right: 4),

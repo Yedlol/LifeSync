@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
@@ -62,7 +63,7 @@ class _DescriptionEditorState extends State<DescriptionEditor> {
     return Container(
       decoration: BoxDecoration(
         border: Border.fromBorderSide(border),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -92,7 +93,7 @@ class _DescriptionEditorState extends State<DescriptionEditor> {
                 showSuperscript: false,
                 customButtons: [
                   QuillToolbarCustomButtonOptions(
-                    icon: const Icon(Icons.image_outlined),
+                    icon: const Icon(PhosphorIconsRegular.image),
                     tooltip: 'Insert image',
                     onPressed: _insertImages,
                   ),

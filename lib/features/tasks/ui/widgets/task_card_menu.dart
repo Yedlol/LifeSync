@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,7 +16,11 @@ class TaskCardMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<Object>(
       tooltip: 'Task actions',
-      icon: Icon(Icons.more_vert, size: 20, color: Colors.grey.shade700),
+      icon: Icon(
+        PhosphorIconsRegular.dotsThreeVertical,
+        size: 20,
+        color: Colors.grey.shade700,
+      ),
       padding: EdgeInsets.zero,
       onSelected: (v) {
         if (v is TaskStatus) {
@@ -39,7 +44,9 @@ class TaskCardMenu extends ConsumerWidget {
             child: Row(
               children: [
                 Icon(
-                  s == task.status ? Icons.check : Icons.arrow_forward,
+                  s == task.status
+                      ? PhosphorIconsRegular.check
+                      : PhosphorIconsRegular.arrowRight,
                   size: 18,
                 ),
                 const SizedBox(width: 12),
@@ -52,7 +59,7 @@ class TaskCardMenu extends ConsumerWidget {
           value: 'edit',
           child: Row(
             children: [
-              Icon(Icons.edit_outlined, size: 18),
+              Icon(PhosphorIconsRegular.pencilSimple, size: 18),
               SizedBox(width: 12),
               Text('Edit'),
             ],
@@ -62,7 +69,7 @@ class TaskCardMenu extends ConsumerWidget {
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete_outline, size: 18, color: Colors.red),
+              Icon(PhosphorIconsRegular.trash, size: 18, color: Colors.red),
               SizedBox(width: 12),
               Text('Delete', style: TextStyle(color: Colors.red)),
             ],

@@ -56,3 +56,33 @@ final monthOverviewProvider = Provider<AsyncValue<MonthOverview>>((ref) {
     ),
   );
 });
+
+class MonthPoint {
+  const MonthPoint(this.month, this.income, this.billsPaid);
+  final DateTime month;
+  final double income;
+  final double billsPaid;
+}
+
+/// Income vs bills paid for the 6 months ending at the selected month
+/// (oldest first). Empty until both lists have loaded.
+final sixMonthTrendProvider = Provider<List<MonthPoint>>((ref) {
+  final end = ref.watch(selectedMonthProvider);
+  final income = ref.watch(incomeProvider).value;
+  final payments = ref.watch(billPaymentsProvider).value;
+  if (income == null || payments == null) return const [];
+  return [
+    for (var i = 5; i >= 0; i--)
+      () {
+        final m = DateTime(end.year, end.month - i, 1);
+        var inc = 0.0, paid = 0.0;
+        for (final e in income) {
+          if (sameMonth(e.entryDate, m)) inc += e.amount;
+        }
+        for (final p in payments) {
+          if (p.period == m) paid += p.amountPaid;
+        }
+        return MonthPoint(m, round2(inc), round2(paid));
+      }(),
+  ];
+});

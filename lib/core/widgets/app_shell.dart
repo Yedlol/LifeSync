@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,14 +12,14 @@ class _Tab {
 }
 
 const _tabs = [
-  _Tab('Dashboard', Icons.dashboard_outlined, Icons.dashboard),
-  _Tab('Tasks', Icons.view_kanban_outlined, Icons.view_kanban),
   _Tab(
-    'Finance',
-    Icons.account_balance_wallet_outlined,
-    Icons.account_balance_wallet,
+    'Dashboard',
+    PhosphorIconsRegular.squaresFour,
+    PhosphorIconsFill.squaresFour,
   ),
-  _Tab('Settings', Icons.settings_outlined, Icons.settings),
+  _Tab('Tasks', PhosphorIconsRegular.kanban, PhosphorIconsFill.kanban),
+  _Tab('Finance', PhosphorIconsRegular.wallet, PhosphorIconsFill.wallet),
+  _Tab('Settings', PhosphorIconsRegular.gear, PhosphorIconsFill.gear),
 ];
 
 class AppShell extends StatelessWidget {

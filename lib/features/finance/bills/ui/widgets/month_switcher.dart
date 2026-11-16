@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,7 @@ class MonthSwitcher extends ConsumerWidget {
       children: [
         IconButton(
           tooltip: 'Previous month',
-          icon: const Icon(Icons.chevron_left),
+          icon: const Icon(PhosphorIconsRegular.caretLeft),
           onPressed: () => notifier.shift(-1),
         ),
         ConstrainedBox(
@@ -34,7 +35,7 @@ class MonthSwitcher extends ConsumerWidget {
         ),
         IconButton(
           tooltip: 'Next month',
-          icon: const Icon(Icons.chevron_right),
+          icon: const Icon(PhosphorIconsRegular.caretRight),
           onPressed: () => notifier.shift(1),
         ),
         if (!isCurrent)

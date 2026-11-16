@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -127,12 +128,12 @@ class _IncomeFormState extends ConsumerState<IncomeForm> {
           ),
           gap,
           InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             onTap: _pickDate,
             child: InputDecorator(
               decoration: const InputDecoration(
                 labelText: 'Date',
-                prefixIcon: Icon(Icons.event_outlined),
+                prefixIcon: Icon(PhosphorIconsRegular.calendarBlank),
               ),
               child: Text(formatDate(_date)),
             ),
