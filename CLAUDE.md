@@ -17,6 +17,11 @@ Tables: user_settings, projects, tasks, task_images, bills, bill_payments,
 savings_goals, saving_entries, income_entries.
 Views: bills_this_month, savings_progress.
 Every table has user_id with RLS (user_id = auth.uid()); user_id defaults to auth.uid().
+user_settings also holds salary/OT config: basic_salary, ot_hourly_rate,
+ot_rate_normal (1.5), ot_rate_rest_day (2.0), ot_rate_holiday (3.0),
+normal_hours_per_day (8), pay_day (nullable, 1–31).
+income_entries: type (salary|overtime|allowance|bonus|other), amount, entry_date,
+hours, day_type, rate_multiplier, note (overtime amount = hours × OT rate × multiplier).
 Enums: task_status (open, in_progress, on_hold, done),
 task_priority (low, medium, high, urgent).
 
