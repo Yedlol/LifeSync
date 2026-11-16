@@ -7,7 +7,8 @@ salary/overtime). Single user. Syncs between Android phone and Windows PC.
 - Supabase: Postgres, Auth (email), Storage (bucket: task-images), Realtime
 - State: flutter_riverpod (Notifier/AsyncNotifier, no code generation)
 - Routing: go_router
-- Rich text: flutter_quill + flutter_quill_extensions (later phase)
+- Rich text: flutter_quill + flutter_quill_extensions
+- Images: image_picker (gallery/camera/file dialog), uuid (client-side ids / file names)
 - Notifications: flutter_local_notifications (later phase)
 - Currency RM (MYR), timezone Asia/Kuala_Lumpur
 

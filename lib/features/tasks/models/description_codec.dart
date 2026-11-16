@@ -27,3 +27,27 @@ String deltaToPlainText(Object? delta) {
   }
   return buf.toString().trimRight();
 }
+
+List<dynamic> _opsOf(Object? delta) => switch (delta) {
+  List<dynamic> l => l,
+  Map<String, dynamic> m when m['ops'] is List => m['ops'] as List<dynamic>,
+  _ => const <dynamic>[],
+};
+
+/// Storage paths of all image embeds in a Quill Delta, in document order.
+List<String> imagePathsFromDelta(Object? delta) => [
+  for (final op in _opsOf(delta))
+    if (op is Map &&
+        op['insert'] is Map &&
+        (op['insert'] as Map)['image'] is String)
+      (op['insert'] as Map)['image'] as String,
+];
+
+/// First [maxLines] non-empty lines of the description, for task cards.
+String descriptionPreviewOf(Object? delta, {int maxLines = 2}) =>
+    deltaToPlainText(delta)
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .take(maxLines)
+        .join('\n');

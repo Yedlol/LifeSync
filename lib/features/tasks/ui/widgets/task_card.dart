@@ -75,6 +75,15 @@ class TaskCard extends ConsumerWidget {
                   ?trailing,
                 ],
               ),
+              if (task.descriptionPreview.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  task.descriptionPreview,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: grey),
+                ),
+              ],
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -86,6 +95,12 @@ class TaskCard extends ConsumerWidget {
                   ),
                   if (project != null)
                     TaskTag(label: project.name, color: project.colorValue),
+                  if (task.imageCount > 0)
+                    TaskTag(
+                      icon: Icons.image_outlined,
+                      label: '${task.imageCount}',
+                      color: grey,
+                    ),
                   if (task.dueAt != null)
                     TaskTag(
                       icon: Icons.event,

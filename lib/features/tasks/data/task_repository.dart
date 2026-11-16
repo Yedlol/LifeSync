@@ -25,7 +25,7 @@ class TaskRepository {
   Future<Task> create(Task t) async {
     final row = await supabaseClient
         .from(_table)
-        .insert(t.toJson())
+        .insert({if (t.id.isNotEmpty) 'id': t.id, ...t.toJson()})
         .select()
         .single();
     return Task.fromJson(row);

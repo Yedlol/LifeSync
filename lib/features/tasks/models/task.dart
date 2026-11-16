@@ -34,6 +34,12 @@ class Task {
 
   String get descriptionText => deltaToPlainText(description);
 
+  /// First two non-empty description lines (task card).
+  String get descriptionPreview => descriptionPreviewOf(description);
+
+  /// Number of images embedded in the description.
+  int get imageCount => imagePathsFromDelta(description).length;
+
   bool get isDone => status == TaskStatus.done;
 
   /// Overdue = due day is before today (local time) and not done.

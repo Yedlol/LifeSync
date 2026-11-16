@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/live_list_notifier.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../data/task_image_repository.dart';
 import '../data/task_repository.dart';
 import '../models/task.dart';
 import '../models/task_enums.dart';
@@ -9,6 +10,10 @@ import '../models/task_ordering.dart';
 
 final taskRepositoryProvider = Provider<TaskRepository>(
   (_) => TaskRepository(),
+);
+
+final taskImageRepositoryProvider = Provider<TaskImageRepository>(
+  (_) => TaskImageRepository(),
 );
 
 /// All tasks, live, with optimistic moves/deletes.
@@ -63,8 +68,14 @@ class TasksNotifier extends LiveListNotifier<Task> {
     if (ref.mounted) upsertLocal(saved);
   }
 
-  Future<void> delete(Task t) =>
-      optimistic(removed: {t.id}, save: () => _repo.delete(t.id));
+  /// Deletes the task's Storage images first, then the task itself.
+  Future<void> delete(Task t) => optimistic(
+    removed: {t.id},
+    save: () async {
+      await ref.read(taskImageRepositoryProvider).deleteAllForTask(t.id);
+      await _repo.delete(t.id);
+    },
+  );
 
   /// Drag & drop: move [task] into [to], between [aboveId] and [belowId]
   /// (ids of the visible neighbours; null = top/bottom).

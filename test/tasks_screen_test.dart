@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart'
+    show FlutterQuillLocalizations, QuillEditor, QuillSimpleToolbar;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifesync/core/theme/app_theme.dart';
@@ -6,6 +8,7 @@ import 'package:lifesync/features/auth/providers/auth_providers.dart';
 import 'package:lifesync/features/projects/data/project_repository.dart';
 import 'package:lifesync/features/projects/models/project.dart';
 import 'package:lifesync/features/projects/providers/project_providers.dart';
+import 'package:lifesync/features/tasks/data/task_image_repository.dart';
 import 'package:lifesync/features/tasks/data/task_repository.dart';
 import 'package:lifesync/features/tasks/models/task.dart';
 import 'package:lifesync/features/tasks/models/task_enums.dart';
@@ -13,7 +16,36 @@ import 'package:lifesync/features/tasks/providers/tasks_notifier.dart';
 import 'package:lifesync/features/tasks/ui/tasks_screen.dart';
 
 final _now = DateTime.now();
+final _richDelta = [
+  {'insert': 'First line\n'},
+  {'insert': 'Second line\n'},
+  {'insert': 'Third line\n'},
+  {
+    'insert': {'image': 'uid/6/a.jpg'},
+  },
+  {'insert': '\n'},
+  {
+    'insert': {'image': 'uid/6/b.jpg'},
+  },
+  {'insert': '\n'},
+];
 final _tasks = [
+  Task(
+    id: '6',
+    title: 'Rich task',
+    position: 3000,
+    description: _richDelta,
+    createdAt: _now,
+  ),
+  Task(
+    id: '7',
+    title: 'Legacy plain task',
+    position: 4000,
+    description: const [
+      {'insert': 'old plain text\n'},
+    ],
+    createdAt: _now,
+  ),
   Task(
     id: '1',
     title: 'Pay electricity bill',
@@ -77,6 +109,11 @@ class _FakeTasks extends TaskRepository {
   }
 }
 
+class _FakeImages extends TaskImageRepository {
+  @override
+  Future<String> signedUrl(String path) => Future.error('no network in tests');
+}
+
 class _FakeProjects extends ProjectRepository {
   @override
   Stream<List<Project>> watch() => Stream.value(const [
@@ -95,8 +132,15 @@ Future<void> _pump(WidgetTester tester, Size size) async {
         currentEmailProvider.overrideWith((_) => Stream.value('me@test')),
         taskRepositoryProvider.overrideWithValue(_FakeTasks()),
         projectRepositoryProvider.overrideWithValue(_FakeProjects()),
+        taskImageRepositoryProvider.overrideWithValue(_FakeImages()),
       ],
-      child: MaterialApp(theme: buildAppTheme(), home: const TasksScreen()),
+      child: MaterialApp(
+        theme: buildAppTheme(),
+        localizationsDelegates:
+            FlutterQuillLocalizations.localizationsDelegates,
+        supportedLocales: FlutterQuillLocalizations.supportedLocales,
+        home: const TasksScreen(),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -139,7 +183,14 @@ void main() {
     await _pump(tester, const Size(1400, 900));
     await tester.tap(find.text('New task'));
     await tester.pumpAndSettle();
-    expect(find.text('Create task'), findsOneWidget);
+    // The (taller) rich-text editor pushes the button below the fold.
+    await tester.scrollUntilVisible(
+      find.text('Create task'),
+      200,
+      scrollable: find
+          .descendant(of: find.byType(Form), matching: find.byType(Scrollable))
+          .first,
+    );
     await tester.tap(find.text('Create task'));
     await tester.pumpAndSettle();
     expect(find.text('Title is required'), findsOneWidget);
@@ -198,6 +249,49 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining("Couldn't move task"), findsOneWidget);
       expect(colX(tester, 'Pay electricity bill'), openX);
+    });
+  });
+
+  group('rich text description', () {
+    testWidgets('card shows 2-line preview and image count', (tester) async {
+      await _pump(tester, const Size(1400, 900));
+      expect(find.text('First line\nSecond line'), findsOneWidget);
+      expect(find.text('Third line'), findsNothing);
+      expect(find.byIcon(Icons.image_outlined), findsOneWidget);
+      expect(find.text('2'), findsWidgets);
+    });
+
+    testWidgets('edit form opens rich task: toolbar, text, broken images', (
+      tester,
+    ) async {
+      await _pump(tester, const Size(1400, 900));
+      await tester.tap(find.text('Rich task'));
+      await tester.pumpAndSettle();
+      expect(find.byType(QuillSimpleToolbar), findsOneWidget);
+      expect(find.byType(QuillEditor), findsOneWidget);
+      expect(find.textContaining('First line'), findsWidgets);
+      expect(find.byTooltip('Insert image'), findsOneWidget);
+      expect(find.byIcon(Icons.broken_image_outlined), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('legacy plain-text task opens with its text', (tester) async {
+      await _pump(tester, const Size(1400, 900));
+      await tester.tap(find.text('Legacy plain task'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('old plain text'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('phone: edit form fits with single-row toolbar', (
+      tester,
+    ) async {
+      await _pump(tester, const Size(400, 800));
+      await tester.tap(find.byTooltip('New task'));
+      await tester.pumpAndSettle();
+      expect(find.byType(QuillSimpleToolbar), findsOneWidget);
+      expect(find.byType(QuillEditor), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

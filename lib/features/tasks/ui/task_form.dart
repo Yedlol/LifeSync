@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' show QuillController;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/utils/date_format.dart';
 import '../../../core/widgets/responsive_dialog.dart';
@@ -7,6 +9,9 @@ import '../models/description_codec.dart';
 import '../models/task.dart';
 import '../models/task_enums.dart';
 import '../providers/tasks_notifier.dart';
+import 'widgets/description_editor/description_controller.dart';
+import 'widgets/description_editor/description_editor.dart';
+import 'widgets/description_editor/image_upload_session.dart';
 import 'widgets/due_date_field.dart';
 import 'widgets/project_dropdown.dart';
 
@@ -45,9 +50,12 @@ class TaskForm extends ConsumerStatefulWidget {
 class _TaskFormState extends ConsumerState<TaskForm> {
   final _form = GlobalKey<FormState>();
   late final _title = TextEditingController(text: widget.task?.title ?? '');
-  late final _desc = TextEditingController(
-    text: widget.task?.descriptionText ?? '',
-  );
+  // New tasks get their id up front so images can upload before the task row
+  // exists.
+  late final String _taskId = widget.task?.id ?? const Uuid().v4();
+  late final ImageUploadSession _images;
+  late final QuillController _desc;
+  bool _saved = false;
   late TaskPriority _priority = widget.task?.priority ?? TaskPriority.medium;
   late TaskStatus _status =
       widget.task?.status ?? widget.initialStatus ?? TaskStatus.open;
@@ -56,22 +64,50 @@ class _TaskFormState extends ConsumerState<TaskForm> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    _images = ImageUploadSession(
+      repo: ref.read(taskImageRepositoryProvider),
+      taskId: _taskId,
+      isNewTask: widget.task == null,
+    );
+    _desc = createDescriptionController(
+      delta: widget.task?.description,
+      session: _images,
+      onPasteError: (_) {
+        if (!mounted) return;
+        showSnack(
+          ScaffoldMessenger.of(context),
+          'Could not upload pasted image.',
+        );
+      },
+    );
+  }
+
+  @override
   void dispose() {
     _title.dispose();
     _desc.dispose();
+    // Closed without saving: remove images uploaded in this session.
+    if (!_saved) _images.discard();
+    _images.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
+    if (_images.uploading.value > 0) {
+      showSnack(ScaffoldMessenger.of(context), 'Wait for the image upload.');
+      return;
+    }
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(tasksProvider.notifier);
     final original = widget.task;
-    final draft = (original ?? const Task(id: '', title: '')).copyWith(
+    final draft = (original ?? Task(id: _taskId, title: '')).copyWith(
       title: _title.text.trim(),
-      description: plainTextToDelta(_desc.text),
+      description: deltaFromController(_desc),
       priority: _priority,
       status: _status,
       projectId: _projectId,
@@ -82,6 +118,13 @@ class _TaskFormState extends ConsumerState<TaskForm> {
         await notifier.create(draft);
       } else {
         await notifier.save(original, draft);
+      }
+      _saved = true;
+      try {
+        await _images.commit(imagePathsFromDelta(draft.description).toSet());
+      } catch (e) {
+        // The task is saved; leftover files get cleaned up on its next save.
+        debugPrint('image cleanup failed: $e');
       }
       navigator.pop();
     } catch (e) {
@@ -109,16 +152,7 @@ class _TaskFormState extends ConsumerState<TaskForm> {
                 (v == null || v.trim().isEmpty) ? 'Title is required' : null,
           ),
           gap,
-          TextFormField(
-            controller: _desc,
-            minLines: 3,
-            maxLines: 8,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              alignLabelWithHint: true,
-            ),
-          ),
+          DescriptionEditor(controller: _desc, session: _images),
           gap,
           Text('Priority', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
