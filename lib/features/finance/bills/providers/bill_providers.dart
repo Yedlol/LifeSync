@@ -114,10 +114,17 @@ class BillMonth {
 }
 
 /// Bills for the selected month with paid/unpaid status computed in Dart.
-final billMonthProvider = Provider<AsyncValue<BillMonth>>((ref) {
+final billMonthProvider = Provider<AsyncValue<BillMonth>>(
+  (ref) => ref.watch(billMonthFor(ref.watch(selectedMonthProvider))),
+);
+
+/// Same for any month (first day of it).
+final billMonthFor = Provider.family<AsyncValue<BillMonth>, DateTime>((
+  ref,
+  month,
+) {
   final bills = ref.watch(billsProvider);
   final payments = ref.watch(billPaymentsProvider);
-  final month = ref.watch(selectedMonthProvider);
 
   if (bills.hasError && !bills.hasValue) {
     return AsyncError(bills.error!, bills.stackTrace ?? StackTrace.empty);

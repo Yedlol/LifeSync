@@ -47,9 +47,16 @@ class IncomeNotifier extends LiveListNotifier<IncomeEntry> {
 }
 
 /// Entries of the selected month, split + totalled.
-final incomeMonthProvider = Provider<AsyncValue<IncomeMonth>>((ref) {
+final incomeMonthProvider = Provider<AsyncValue<IncomeMonth>>(
+  (ref) => ref.watch(incomeMonthFor(ref.watch(selectedMonthProvider))),
+);
+
+/// Same for any month (first day of it).
+final incomeMonthFor = Provider.family<AsyncValue<IncomeMonth>, DateTime>((
+  ref,
+  month,
+) {
   final all = ref.watch(incomeProvider);
-  final month = ref.watch(selectedMonthProvider);
   if (all.hasError && !all.hasValue) {
     return AsyncError(all.error!, all.stackTrace ?? StackTrace.empty);
   }

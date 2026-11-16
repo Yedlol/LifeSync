@@ -8,12 +8,10 @@ import 'widgets/overview_card.dart';
 import '../../../../core/widgets/motion.dart';
 import '../../../../core/widgets/skeletons.dart';
 import 'widgets/income_bills_chart.dart';
+import '../../providers/finance_tab_provider.dart';
 
 const _green = Color(0xFF2E7D32);
 const _red = Color(0xFFD32F2F);
-
-/// Finance tab indexes (see FinanceScreen).
-const kTabBills = 1, kTabSavings = 2, kTabIncome = 3;
 
 /// Monthly overview: income, bills, savings and what is left.
 class OverviewScreen extends ConsumerWidget {
@@ -23,8 +21,8 @@ class OverviewScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(monthOverviewProvider);
     final trend = ref.watch(sixMonthTrendProvider);
-    final tabs = DefaultTabController.maybeOf(context);
-    VoidCallback? open(int i) => tabs == null ? null : () => tabs.animateTo(i);
+    VoidCallback open(int i) =>
+        () => ref.read(financeTabProvider.notifier).set(i);
 
     return Center(
       child: ConstrainedBox(

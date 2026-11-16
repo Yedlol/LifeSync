@@ -21,16 +21,27 @@ class MonthOverview {
   /// Net of deposits and withdrawals dated in the month.
   final double saved;
 
+  /// Nothing recorded for the month at all.
+  bool get isEmpty =>
+      income == 0 && billsPaid == 0 && billsUnpaid == 0 && saved == 0;
+
   double get left => round2(income - billsPaid - saved);
   double get afterUnpaid => round2(left - billsUnpaid);
 }
 
 /// Everything the Overview tab shows for the selected month.
-final monthOverviewProvider = Provider<AsyncValue<MonthOverview>>((ref) {
-  final month = ref.watch(selectedMonthProvider);
-  final income = ref.watch(incomeMonthProvider);
+final monthOverviewProvider = Provider<AsyncValue<MonthOverview>>(
+  (ref) => ref.watch(monthOverviewFor(ref.watch(selectedMonthProvider))),
+);
+
+/// Same for any month (first day of it).
+final monthOverviewFor = Provider.family<AsyncValue<MonthOverview>, DateTime>((
+  ref,
+  month,
+) {
+  final income = ref.watch(incomeMonthFor(month));
   final payments = ref.watch(billPaymentsProvider);
-  final bills = ref.watch(billMonthProvider);
+  final bills = ref.watch(billMonthFor(month));
   final entries = ref.watch(savingEntriesProvider);
 
   for (final a in <AsyncValue<Object?>>[income, payments, bills, entries]) {
