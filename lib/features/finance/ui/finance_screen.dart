@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../bills/ui/bills_screen.dart';
+import '../savings/ui/savings_screen.dart';
 
 /// Finance tab: Bills / Savings / Income sub-tabs.
 class FinanceScreen extends StatelessWidget {
@@ -24,7 +25,7 @@ class FinanceScreen extends StatelessWidget {
         body: const TabBarView(
           children: [
             BillsScreen(),
-            _ComingSoon(icon: Icons.savings_outlined, label: 'Savings'),
+            SavingsScreen(),
             _ComingSoon(icon: Icons.payments_outlined, label: 'Income'),
           ],
         ),
