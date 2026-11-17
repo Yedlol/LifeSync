@@ -55,3 +55,7 @@ android/key.properties
 *.jks
 *.keystore
 
+
+# Build outputs / local config
+/dist/
+env.json

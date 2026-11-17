@@ -1,6 +1,6 @@
 {
-    "name": "lifesync",
-    "short_name": "lifesync",
+    "name": "LifeSync",
+    "short_name": "LifeSync",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

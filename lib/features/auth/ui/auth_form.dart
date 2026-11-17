@@ -1,4 +1,3 @@
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -37,10 +36,15 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    PhosphorIconsRegular.arrowsLeftRight,
-                    size: 48,
-                    color: kPrimary,
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        'assets/icon/icon.png',
+                        width: 48,
+                        height: 48,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(

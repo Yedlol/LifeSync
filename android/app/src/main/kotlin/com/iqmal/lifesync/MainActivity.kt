@@ -1,4 +1,4 @@
-package com.example.lifesync
+package com.iqmal.lifesync
 
 import io.flutter.embedding.android.FlutterActivity
 
