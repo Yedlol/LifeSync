@@ -14,6 +14,7 @@ import 'widgets/description_editor/description_editor.dart';
 import 'widgets/description_editor/image_upload_session.dart';
 import 'widgets/due_date_field.dart';
 import 'widgets/project_dropdown.dart';
+import '../../../core/offline/sync_service.dart';
 
 /// Opens the task form: dialog on desktop, full-screen page on phone.
 /// [task] null = create.
@@ -78,7 +79,9 @@ class _TaskFormState extends ConsumerState<TaskForm> {
         if (!mounted) return;
         showSnack(
           ScaffoldMessenger.of(context),
-          'Could not upload pasted image.',
+          ref.read(isOnlineProvider)
+              ? 'Could not upload pasted image.'
+              : 'Connect to add images.',
         );
       },
     );

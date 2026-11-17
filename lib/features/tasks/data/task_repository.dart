@@ -1,48 +1,47 @@
+import '../../../core/offline/cached_table.dart';
+import '../../../core/offline/local_store.dart';
 import '../../../core/supabase/supabase_config.dart';
 import '../models/task.dart';
 import '../models/task_enums.dart';
 
+/// Tasks: reads come from the offline cache; writes go to the cache and the
+/// outbox (synced by SyncService). Ids are generated on the client.
 class TaskRepository {
-  static const _table = 'tasks';
+  static const _table = Tables.tasks;
+  static const _w = OfflineWriter(_table);
+
+  static final cache = CachedTable<Task>(
+    _table,
+    Task.fromJson,
+    compare: (a, b) {
+      final c = a.position.compareTo(b.position);
+      return c != 0 ? c : a.id.compareTo(b.id);
+    },
+  );
 
   String _now() => DateTime.now().toUtc().toIso8601String();
 
-  /// Live list (initial fetch + realtime changes from other devices).
-  Stream<List<Task>> watch() => supabaseClient
+  /// Raw rows: initial fetch + realtime changes (written into the cache).
+  Stream<List<Map<String, dynamic>>> watchRows() => supabaseClient
       .from(_table)
       .stream(primaryKey: ['id'])
-      .order('position', ascending: true)
-      .map((rows) => rows.map(Task.fromJson).toList());
+      .order('position', ascending: true);
 
-  Future<List<Task>> list() async {
-    final rows = await supabaseClient
-        .from(_table)
-        .select()
-        .order('position', ascending: true);
-    return rows.map(Task.fromJson).toList();
+  Task? cached(String id) {
+    final r = _w.cached(id);
+    return r == null ? null : Task.fromJson(r);
   }
 
-  Future<Task> create(Task t) async {
-    final row = await supabaseClient
-        .from(_table)
-        .insert({if (t.id.isNotEmpty) 'id': t.id, ...t.toJson()})
-        .select()
-        .single();
-    return Task.fromJson(row);
-  }
+  /// Uses [t.id] (TaskForm generates it up front for image uploads) or a
+  /// new UUID.
+  Future<Task> create(Task t) async => Task.fromJson(
+    await _w.upsert(clientId(t.id), {...t.toJson(), 'updated_at': _now()}),
+  );
 
-  Future<Task> update(Task t) async {
-    final row = await supabaseClient
-        .from(_table)
-        .update({...t.toJson(), 'updated_at': _now()})
-        .eq('id', t.id)
-        .select()
-        .single();
-    return Task.fromJson(row);
-  }
+  Future<Task> update(Task t) async =>
+      Task.fromJson(await _w.upsert(t.id, {...t.toJson(), 'updated_at': _now()}));
 
-  Future<void> delete(String id) =>
-      supabaseClient.from(_table).delete().eq('id', id);
+  Future<void> delete(String id) => _w.delete(id);
 
   /// Moves a task to [newStatus] at [newPosition].
   /// [completedAt] should come from `Task.completedAtFor(newStatus)`.
@@ -51,19 +50,21 @@ class TaskRepository {
     TaskStatus newStatus,
     double newPosition, {
     required DateTime? completedAt,
-  }) => supabaseClient
-      .from(_table)
-      .update({
-        'status': newStatus.db,
-        'position': newPosition,
-        'completed_at': completedAt?.toUtc().toIso8601String(),
-        'updated_at': _now(),
-      })
-      .eq('id', taskId);
+  }) async {
+    final t = cached(taskId);
+    if (t == null) throw StateError('Task $taskId is not cached');
+    final moved = t.copyWith(
+      status: newStatus,
+      position: newPosition,
+      completedAt: completedAt,
+    );
+    await _w.upsert(taskId, {...moved.toJson(), 'updated_at': _now()});
+  }
 
   /// Bulk position update used when a column is renumbered.
   Future<void> setPositions(Map<String, double> positions) => Future.wait([
     for (final e in positions.entries)
-      supabaseClient.from(_table).update({'position': e.value}).eq('id', e.key),
+      if (cached(e.key) case final t?)
+        _w.upsert(e.key, t.copyWith(position: e.value).toJson()),
   ]);
 }

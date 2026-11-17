@@ -1,7 +1,9 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/offline/sync_service.dart';
 import '../../../../../core/utils/breakpoints.dart';
 import '../../../../../core/utils/image_processing.dart';
 import '../../../../../core/widgets/responsive_dialog.dart';
@@ -12,7 +14,7 @@ import 'storage_image.dart';
 
 /// Rich text description: toolbar + editor + upload indicator.
 /// The [controller] is owned by the caller (it reads the Delta on save).
-class DescriptionEditor extends StatefulWidget {
+class DescriptionEditor extends ConsumerStatefulWidget {
   const DescriptionEditor({
     super.key,
     required this.controller,
@@ -22,10 +24,11 @@ class DescriptionEditor extends StatefulWidget {
   final ImageUploadSession session;
 
   @override
-  State<DescriptionEditor> createState() => _DescriptionEditorState();
+  ConsumerState<DescriptionEditor> createState() =>
+      _DescriptionEditorState();
 }
 
-class _DescriptionEditorState extends State<DescriptionEditor> {
+class _DescriptionEditorState extends ConsumerState<DescriptionEditor> {
   final _focus = FocusNode();
   final _scroll = ScrollController();
 
@@ -59,6 +62,8 @@ class _DescriptionEditorState extends State<DescriptionEditor> {
   @override
   Widget build(BuildContext context) {
     final desktop = isDesktop(context);
+    // Uploads need internet.
+    final online = ref.watch(isOnlineProvider);
     final border = BorderSide(color: Colors.grey.shade400);
     return Container(
       decoration: BoxDecoration(
@@ -93,9 +98,13 @@ class _DescriptionEditorState extends State<DescriptionEditor> {
                 showSuperscript: false,
                 customButtons: [
                   QuillToolbarCustomButtonOptions(
-                    icon: const Icon(PhosphorIconsRegular.image),
-                    tooltip: 'Insert image',
-                    onPressed: _insertImages,
+                    // Greyed out + no-op while offline.
+                    icon: Icon(
+                      PhosphorIconsRegular.image,
+                      color: online ? null : Theme.of(context).disabledColor,
+                    ),
+                    tooltip: online ? 'Insert image' : 'Connect to add images',
+                    onPressed: online ? _insertImages : null,
                   ),
                 ],
               ),

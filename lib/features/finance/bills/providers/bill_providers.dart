@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/live_list_notifier.dart';
+import '../../../../core/offline/cached_table.dart';
 import '../../../auth/providers/auth_providers.dart';
 import '../data/bill_repository.dart';
 import '../models/bill.dart';
@@ -11,7 +12,7 @@ final billRepositoryProvider = Provider<BillRepository>(
   (_) => BillRepository(),
 );
 
-/// All bills (incl. inactive), live.
+/// All bills (incl. inactive), from the offline cache.
 final billsProvider = NotifierProvider<BillsNotifier, AsyncValue<List<Bill>>>(
   BillsNotifier.new,
 );
@@ -26,31 +27,21 @@ class BillsNotifier extends LiveListNotifier<Bill> {
   }
 
   @override
-  Stream<List<Bill>> watchSource() => _repo.watchBills();
+  CachedTable<Bill> get table => BillRepository.billCache;
 
   @override
-  String idOf(Bill item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchBillRows();
 
-  Future<void> create(Bill b) async {
-    final saved = await _repo.create(b);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> create(Bill b) => _repo.create(b);
 
-  Future<void> save(Bill b) async {
-    final saved = await _repo.update(b);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> save(Bill b) => _repo.update(b);
 
-  Future<void> setActive(Bill b, bool active) => optimistic(
-    changed: [b.copyWith(isActive: active)],
-    save: () => _repo.setActive(b.id, active),
-  );
+  Future<void> setActive(Bill b, bool active) => _repo.setActive(b.id, active);
 
-  Future<void> delete(Bill b) =>
-      optimistic(removed: {b.id}, save: () => _repo.delete(b.id));
+  Future<void> delete(Bill b) => _repo.delete(b.id);
 }
 
-/// All payments, live.
+/// All payments, from the offline cache.
 final billPaymentsProvider =
     NotifierProvider<BillPaymentsNotifier, AsyncValue<List<BillPayment>>>(
       BillPaymentsNotifier.new,
@@ -66,30 +57,25 @@ class BillPaymentsNotifier extends LiveListNotifier<BillPayment> {
   }
 
   @override
-  Stream<List<BillPayment>> watchSource() => _repo.watchPayments();
+  CachedTable<BillPayment> get table => BillRepository.paymentCache;
 
   @override
-  String idOf(BillPayment item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchPaymentRows();
 
   Future<void> markPaid({
     required String billId,
     required DateTime period,
     required double amountPaid,
     required DateTime paidAt,
-  }) async {
-    final saved = await _repo.markPaid(
-      billId: billId,
-      period: period,
-      amountPaid: amountPaid,
-      paidAt: paidAt,
-    );
-    if (ref.mounted) upsertLocal(saved);
-  }
-
-  Future<void> markUnpaid(BillPayment p) => optimistic(
-    removed: {p.id},
-    save: () => _repo.markUnpaid(p.billId, p.period),
+  }) => _repo.markPaid(
+    billId: billId,
+    period: period,
+    amountPaid: amountPaid,
+    paidAt: paidAt,
   );
+
+  Future<void> markUnpaid(BillPayment p) =>
+      _repo.markUnpaid(p.billId, p.period);
 }
 
 /// The month shown on the Bills screen (always the 1st, local time).

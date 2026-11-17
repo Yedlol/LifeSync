@@ -11,6 +11,7 @@ import 'widgets/desktop_board.dart';
 import 'widgets/phone_board.dart';
 import 'widgets/task_filter_bar.dart';
 import '../../../core/widgets/skeletons.dart';
+import '../../../core/offline/ui/sync_indicator.dart';
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
@@ -27,6 +28,8 @@ class TasksScreen extends ConsumerWidget {
 
     final actions = desktop
         ? [
+            const SyncIndicator(),
+            const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: () => showProjectManager(context),
               icon: const Icon(PhosphorIconsRegular.folder, size: 18),
@@ -42,6 +45,7 @@ class TasksScreen extends ConsumerWidget {
             const SizedBox(width: 12),
           ]
         : [
+            const SyncIndicator(),
             IconButton(
               tooltip: 'Projects',
               icon: const Icon(PhosphorIconsRegular.folder),

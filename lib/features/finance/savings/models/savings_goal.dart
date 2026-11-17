@@ -43,6 +43,13 @@ class SavingsGoal {
     'deadline': deadline == null ? null : dateOnly(deadline!),
   };
 
+  /// Full row as cached offline.
+  Map<String, dynamic> toRow() => {
+    'id': id,
+    ...toJson(),
+    'created_at': createdAt?.toUtc().toIso8601String(),
+  };
+
   SavingsGoal copyWith({
     String? name,
     double? targetAmount,

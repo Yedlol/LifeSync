@@ -4,6 +4,7 @@ import 'package:flutter_quill/flutter_quill.dart'
     show FlutterQuillLocalizations, QuillEditor, QuillSimpleToolbar;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifesync/core/offline/local_store.dart';
 import 'package:lifesync/core/theme/app_theme.dart';
 import 'package:lifesync/features/auth/providers/auth_providers.dart';
 import 'package:lifesync/features/projects/data/project_repository.dart';
@@ -90,12 +91,12 @@ final _tasks = [
   ),
 ];
 
-bool _failSaves = false;
 final _moves = <String>[];
 
 class _FakeTasks extends TaskRepository {
   @override
-  Stream<List<Task>> watch() => Stream.value(_tasks);
+  Stream<List<Map<String, dynamic>>> watchRows() =>
+      Stream.value([for (final t in _tasks) t.toRow()]);
 
   @override
   Future<void> move(
@@ -103,10 +104,14 @@ class _FakeTasks extends TaskRepository {
     TaskStatus newStatus,
     double newPosition, {
     required DateTime? completedAt,
-  }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    if (_failSaves) throw Exception('offline');
+  }) {
     _moves.add('$taskId->${newStatus.db}@$newPosition');
+    return super.move(
+      taskId,
+      newStatus,
+      newPosition,
+      completedAt: completedAt,
+    );
   }
 }
 
@@ -117,9 +122,9 @@ class _FakeImages extends TaskImageRepository {
 
 class _FakeProjects extends ProjectRepository {
   @override
-  Stream<List<Project>> watch() => Stream.value(const [
-    Project(id: 'p1', name: 'Home', color: '#43A047'),
-    Project(id: 'p2', name: 'Old', isArchived: true),
+  Stream<List<Map<String, dynamic>>> watchRows() => Stream.value([
+    const Project(id: 'p1', name: 'Home', color: '#43A047').toRow(),
+    const Project(id: 'p2', name: 'Old', isArchived: true).toRow(),
   ]);
 }
 
@@ -148,6 +153,8 @@ Future<void> _pump(WidgetTester tester, Size size) async {
 }
 
 void main() {
+  setUp(() => LocalStore.instance = LocalStore.memory());
+
   testWidgets('desktop board renders 4 columns, hides old done', (
     tester,
   ) async {
@@ -206,10 +213,7 @@ void main() {
   });
 
   group('desktop drag & drop', () {
-    setUp(() {
-      _moves.clear();
-      _failSaves = false;
-    });
+    setUp(_moves.clear);
 
     Future<void> drag(WidgetTester tester) async {
       final from = tester.getCenter(find.text('Pay electricity bill'));
@@ -237,19 +241,32 @@ void main() {
       );
     });
 
-    testWidgets('failed save reverts and shows SnackBar', (tester) async {
-      _failSaves = true;
+    testWidgets('offline: move shows instantly and is queued for sync', (
+      tester,
+    ) async {
       await _pump(tester, const Size(1400, 900));
-      final openX = colX(tester, 'Pay electricity bill');
       await drag(tester);
-      // Optimistic: already in the new column before the save finishes.
+      // In the new column straight away (from the cache), no server needed.
       expect(
         (colX(tester, 'Pay electricity bill') - colX(tester, 'Refactor')).abs(),
         lessThan(5),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining("Couldn't move task"), findsOneWidget);
-      expect(colX(tester, 'Pay electricity bill'), openX);
+      final ops = LocalStore.instance.outbox.pending;
+      expect(ops, hasLength(1));
+      expect(ops.single.table, 'tasks');
+      expect(ops.single.op, 'upsert');
+      expect(ops.single.payload?['id'], '1');
+      expect(ops.single.payload?['status'], 'in_progress');
+      // A server snapshot with the old row must not undo the pending move.
+      await LocalStore.instance.applySnapshot('tasks', [
+        for (final t in _tasks) t.toRow(),
+      ]);
+      await tester.pumpAndSettle();
+      expect(
+        (colX(tester, 'Pay electricity bill') - colX(tester, 'Refactor')).abs(),
+        lessThan(5),
+      );
     });
   });
 

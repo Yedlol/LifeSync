@@ -40,6 +40,17 @@ class BillPayment {
       paidAt: _parseTimestamp(json['paid_at']) ?? period,
     );
   }
+
+  /// Writable columns (upserted on (bill_id, period)).
+  Map<String, dynamic> toJson() => {
+    'bill_id': billId,
+    'period': dateOnly(monthStart(period)),
+    'amount_paid': amountPaid,
+    'paid_at': paidAtValue(paidAt),
+  };
+
+  /// Full row as cached offline.
+  Map<String, dynamic> toRow() => {'id': id, ...toJson()};
 }
 
 /// Date-only value ("2026-11-01") -> local DateTime, ignoring any time part.

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/live_list_notifier.dart';
+import '../../../../core/offline/cached_table.dart';
 import '../../../auth/providers/auth_providers.dart';
 import '../../bills/providers/bill_providers.dart' show selectedMonthProvider;
 import '../data/income_repository.dart';
@@ -11,7 +12,7 @@ final incomeRepositoryProvider = Provider<IncomeRepository>(
   (_) => IncomeRepository(),
 );
 
-/// All income entries, live.
+/// All income entries, from the offline cache.
 final incomeProvider =
     NotifierProvider<IncomeNotifier, AsyncValue<List<IncomeEntry>>>(
       IncomeNotifier.new,
@@ -27,23 +28,16 @@ class IncomeNotifier extends LiveListNotifier<IncomeEntry> {
   }
 
   @override
-  Stream<List<IncomeEntry>> watchSource() => _repo.watchEntries();
+  CachedTable<IncomeEntry> get table => IncomeRepository.cache;
 
   @override
-  String idOf(IncomeEntry item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchRows();
 
-  Future<void> create(IncomeEntry e) async {
-    final saved = await _repo.create(e);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> create(IncomeEntry e) => _repo.create(e);
 
-  Future<void> save(IncomeEntry e) async {
-    final saved = await _repo.update(e);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> save(IncomeEntry e) => _repo.update(e);
 
-  Future<void> delete(IncomeEntry e) =>
-      optimistic(removed: {e.id}, save: () => _repo.delete(e.id));
+  Future<void> delete(IncomeEntry e) => _repo.delete(e.id);
 }
 
 /// Entries of the selected month, split + totalled.

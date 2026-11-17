@@ -94,6 +94,13 @@ class IncomeEntry {
     'note': note.trim().isEmpty ? null : note.trim(),
   };
 
+  /// Full row as cached offline.
+  Map<String, dynamic> toRow() => {
+    'id': id,
+    ...toJson(),
+    'created_at': createdAt?.toUtc().toIso8601String(),
+  };
+
   IncomeEntry copyWith({
     IncomeType? type,
     double? amount,

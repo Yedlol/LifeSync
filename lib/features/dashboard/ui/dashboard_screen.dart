@@ -15,6 +15,7 @@ import 'widgets/money_card.dart';
 import 'widgets/quick_actions.dart';
 import 'widgets/savings_card.dart';
 import 'widgets/tasks_card.dart';
+import '../../../core/offline/ui/sync_indicator.dart';
 
 /// Dashboard tab: greeting, quick actions and the four summary cards.
 class DashboardScreen extends ConsumerWidget {
@@ -97,7 +98,10 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        actions: const [SyncIndicator(), SizedBox(width: 8)],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1100),

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/live_list_notifier.dart';
+import '../../../../core/offline/cached_table.dart';
 import '../../../auth/providers/auth_providers.dart';
 import '../data/savings_repository.dart';
 import '../models/goal_progress.dart';
@@ -11,7 +12,7 @@ final savingsRepositoryProvider = Provider<SavingsRepository>(
   (_) => SavingsRepository(),
 );
 
-/// All goals, live.
+/// All goals, from the offline cache.
 final savingsGoalsProvider =
     NotifierProvider<GoalsNotifier, AsyncValue<List<SavingsGoal>>>(
       GoalsNotifier.new,
@@ -27,26 +28,19 @@ class GoalsNotifier extends LiveListNotifier<SavingsGoal> {
   }
 
   @override
-  Stream<List<SavingsGoal>> watchSource() => _repo.watchGoals();
+  CachedTable<SavingsGoal> get table => SavingsRepository.goalCache;
 
   @override
-  String idOf(SavingsGoal item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchGoalRows();
 
-  Future<void> create(SavingsGoal g) async {
-    final saved = await _repo.createGoal(g);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> create(SavingsGoal g) => _repo.createGoal(g);
 
-  Future<void> save(SavingsGoal g) async {
-    final saved = await _repo.updateGoal(g);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> save(SavingsGoal g) => _repo.updateGoal(g);
 
-  Future<void> delete(SavingsGoal g) =>
-      optimistic(removed: {g.id}, save: () => _repo.deleteGoal(g.id));
+  Future<void> delete(SavingsGoal g) => _repo.deleteGoal(g.id);
 }
 
-/// All entries (every goal), live.
+/// All entries (every goal), from the offline cache.
 final savingEntriesProvider =
     NotifierProvider<EntriesNotifier, AsyncValue<List<SavingEntry>>>(
       EntriesNotifier.new,
@@ -62,25 +56,17 @@ class EntriesNotifier extends LiveListNotifier<SavingEntry> {
   }
 
   @override
-  Stream<List<SavingEntry>> watchSource() => _repo.watchEntries();
+  CachedTable<SavingEntry> get table => SavingsRepository.entryCache;
 
   @override
-  String idOf(SavingEntry item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchEntryRows();
 
   /// Returns the saved row (with its real id) so callers can offer Undo.
-  Future<SavingEntry> add(SavingEntry e) async {
-    final saved = await _repo.addEntry(e);
-    if (ref.mounted) upsertLocal(saved);
-    return saved;
-  }
+  Future<SavingEntry> add(SavingEntry e) => _repo.addEntry(e);
 
-  Future<void> save(SavingEntry e) async {
-    final saved = await _repo.updateEntry(e);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> save(SavingEntry e) => _repo.updateEntry(e);
 
-  Future<void> delete(SavingEntry e) =>
-      optimistic(removed: {e.id}, save: () => _repo.deleteEntry(e.id));
+  Future<void> delete(SavingEntry e) => _repo.deleteEntry(e.id);
 }
 
 class SavingsOverview {

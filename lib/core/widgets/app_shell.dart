@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../utils/breakpoints.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../notifications/notification_router.dart';
+import '../offline/sync_service.dart';
+import '../offline/ui/offline_banner.dart';
 import '../notifications/reminder_scheduler.dart';
 import '../../features/tasks/providers/tasks_notifier.dart';
 
@@ -45,6 +47,8 @@ class _AppShellState extends ConsumerState<AppShell> {
     super.initState();
     // A notification may have launched the app.
     WidgetsBinding.instance.addPostFrameCallback((_) => _openPending());
+    // Signed in / app opened: send pending changes and refresh the cache.
+    ref.read(syncServiceProvider.notifier).refreshSoon();
   }
 
   void _openPending() {
@@ -80,13 +84,25 @@ class _AppShellState extends ConsumerState<AppShell> {
               ],
             ),
             const VerticalDivider(width: 1),
-            Expanded(child: shell),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(child: shell),
+                  const OfflineBanner(),
+                ],
+              ),
+            ),
           ],
         ),
       );
     }
     return Scaffold(
-      body: shell,
+      body: Column(
+        children: [
+          Expanded(child: shell),
+          const OfflineBanner(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: shell.currentIndex,
         onDestinationSelected: _go,

@@ -46,6 +46,13 @@ class Project {
     'is_archived': isArchived,
   };
 
+  /// Full row as cached offline.
+  Map<String, dynamic> toRow() => {
+    'id': id,
+    ...toJson(),
+    'created_at': createdAt?.toUtc().toIso8601String(),
+  };
+
   Project copyWith({String? name, String? color, bool? isArchived}) => Project(
     id: id,
     name: name ?? this.name,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifesync/core/offline/local_store.dart';
 import 'package:lifesync/core/notifications/notification_service.dart';
 import 'package:lifesync/core/notifications/reminder_planner.dart';
 import 'package:lifesync/core/notifications/reminder_settings.dart';
@@ -11,7 +12,6 @@ import 'package:lifesync/features/auth/providers/auth_providers.dart';
 import 'package:lifesync/features/finance/bills/models/bill.dart';
 import 'package:lifesync/features/finance/bills/models/bill_payment.dart';
 import 'package:lifesync/features/settings/data/settings_repository.dart';
-import 'package:lifesync/features/settings/models/user_settings.dart';
 import 'package:lifesync/features/settings/ui/settings_screen.dart';
 import 'package:lifesync/features/tasks/models/task.dart';
 import 'package:lifesync/features/tasks/models/task_enums.dart';
@@ -47,6 +47,8 @@ List<PlannedReminder> _plan({
 );
 
 void main() {
+  setUp(() => LocalStore.instance = LocalStore.memory());
+
   group('planReminders', () {
     test('nothing when the master toggle is off', () {
       expect(
@@ -248,7 +250,7 @@ void main() {
 
 class _FakeSettingsRepo extends SettingsRepository {
   @override
-  Stream<UserSettings> watch() => Stream.value(const UserSettings());
+  Stream<List<Map<String, dynamic>>> watchRows() => Stream.value(const []);
 }
 
 class _FakeService implements NotificationService {

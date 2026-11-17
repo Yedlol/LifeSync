@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifesync/core/offline/local_store.dart';
 import 'package:lifesync/core/theme/app_theme.dart';
 import 'package:lifesync/features/auth/providers/auth_providers.dart';
 import 'package:lifesync/features/dashboard/models/attention.dart';
 import 'package:lifesync/features/dashboard/ui/dashboard_screen.dart';
 import 'package:lifesync/features/finance/bills/data/bill_repository.dart';
 import 'package:lifesync/features/finance/bills/models/bill.dart';
-import 'package:lifesync/features/finance/bills/models/bill_payment.dart';
 import 'package:lifesync/features/finance/bills/providers/bill_providers.dart';
 import 'package:lifesync/features/finance/income/data/income_repository.dart';
-import 'package:lifesync/features/finance/income/models/income_entry.dart';
 import 'package:lifesync/features/finance/income/providers/income_providers.dart';
 import 'package:lifesync/features/finance/savings/data/savings_repository.dart';
-import 'package:lifesync/features/finance/savings/models/saving_entry.dart';
-import 'package:lifesync/features/finance/savings/models/savings_goal.dart';
 import 'package:lifesync/features/finance/savings/providers/savings_providers.dart';
 import 'package:lifesync/features/projects/data/project_repository.dart';
-import 'package:lifesync/features/projects/models/project.dart';
 import 'package:lifesync/features/projects/providers/project_providers.dart';
 import 'package:lifesync/features/tasks/data/task_repository.dart';
 import 'package:lifesync/features/tasks/models/task.dart';
@@ -40,6 +36,8 @@ Task _t(
 );
 
 void main() {
+  setUp(() => LocalStore.instance = LocalStore.memory());
+
   group('attentionTasks', () {
     test('orders overdue, today, soon, then priority; skips done/far', () {
       final items = attentionTasks(
@@ -157,19 +155,20 @@ class _FakeTasks extends TaskRepository {
   _FakeTasks(this.tasks);
   final List<Task> tasks;
   @override
-  Stream<List<Task>> watch() => Stream.value(tasks);
+  Stream<List<Map<String, dynamic>>> watchRows() =>
+      Stream.value([for (final t in tasks) t.toRow()]);
 }
 
 class _FakeProjects extends ProjectRepository {
   @override
-  Stream<List<Project>> watch() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchRows() => Stream.value(const []);
 }
 
 class _FakeBills extends BillRepository {
   _FakeBills(this.empty);
   final bool empty;
   @override
-  Stream<List<Bill>> watchBills() => Stream.value(
+  Stream<List<Map<String, dynamic>>> watchBillRows() => Stream.value(
     empty
         ? const []
         : [
@@ -179,21 +178,21 @@ class _FakeBills extends BillRepository {
               amount: 1200,
               dueDay: 1,
               createdAt: DateTime(2020),
-            ),
+            ).toRow(),
           ],
   );
   @override
-  Stream<List<BillPayment>> watchPayments() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchPaymentRows() => Stream.value(const []);
 }
 
 class _FakeIncome extends IncomeRepository {
   @override
-  Stream<List<IncomeEntry>> watchEntries() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchRows() => Stream.value(const []);
 }
 
 class _FakeSavings extends SavingsRepository {
   @override
-  Stream<List<SavingsGoal>> watchGoals() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchGoalRows() => Stream.value(const []);
   @override
-  Stream<List<SavingEntry>> watchEntries() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchEntryRows() => Stream.value(const []);
 }

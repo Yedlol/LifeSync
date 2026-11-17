@@ -84,6 +84,14 @@ class Task {
     'completed_at': completedAt?.toUtc().toIso8601String(),
   };
 
+  /// Full row as cached offline (writable columns + id + timestamps).
+  Map<String, dynamic> toRow() => {
+    'id': id,
+    ...toJson(),
+    'created_at': createdAt?.toUtc().toIso8601String(),
+    'updated_at': updatedAt?.toUtc().toIso8601String(),
+  };
+
   Task copyWith({
     Object? projectId = _unset,
     String? title,

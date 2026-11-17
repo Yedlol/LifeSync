@@ -77,6 +77,13 @@ class Bill {
     'is_active': isActive,
   };
 
+  /// Full row as cached offline.
+  Map<String, dynamic> toRow() => {
+    'id': id,
+    ...toJson(),
+    'created_at': createdAt?.toUtc().toIso8601String(),
+  };
+
   Bill copyWith({
     String? name,
     String? category,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifesync/core/offline/local_store.dart';
 import 'package:lifesync/core/theme/app_theme.dart';
 import 'package:lifesync/features/auth/providers/auth_providers.dart';
 import 'package:lifesync/features/finance/bills/data/bill_repository.dart';
@@ -8,15 +9,11 @@ import 'package:lifesync/features/finance/bills/models/bill.dart';
 import 'package:lifesync/features/finance/bills/models/bill_payment.dart';
 import 'package:lifesync/features/finance/bills/providers/bill_providers.dart';
 import 'package:lifesync/features/finance/income/data/income_repository.dart';
-import 'package:lifesync/features/finance/income/models/income_entry.dart';
 import 'package:lifesync/features/finance/income/providers/income_providers.dart';
 import 'package:lifesync/features/finance/savings/data/savings_repository.dart';
-import 'package:lifesync/features/finance/savings/models/saving_entry.dart';
-import 'package:lifesync/features/finance/savings/models/savings_goal.dart';
 import 'package:lifesync/features/finance/savings/providers/savings_providers.dart';
 import 'package:lifesync/features/finance/ui/finance_screen.dart';
 import 'package:lifesync/features/settings/data/settings_repository.dart';
-import 'package:lifesync/features/settings/models/user_settings.dart';
 
 final _now = DateTime.now();
 final _thisMonth = DateTime(_now.year, _now.month, 1);
@@ -70,10 +67,12 @@ final _calls = <String>[];
 
 class _FakeBills extends BillRepository {
   @override
-  Stream<List<Bill>> watchBills() => Stream.value(_bills);
+  Stream<List<Map<String, dynamic>>> watchBillRows() =>
+      Stream.value([for (final b in _bills) b.toRow()]);
 
   @override
-  Stream<List<BillPayment>> watchPayments() => Stream.value(_paid);
+  Stream<List<Map<String, dynamic>>> watchPaymentRows() =>
+      Stream.value([for (final p in _paid) p.toRow()]);
 
   @override
   Future<BillPayment> markPaid({
@@ -100,20 +99,20 @@ class _FakeBills extends BillRepository {
 
 class _FakeIncome extends IncomeRepository {
   @override
-  Stream<List<IncomeEntry>> watchEntries() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchRows() => Stream.value(const []);
 }
 
 class _FakeSavings extends SavingsRepository {
   @override
-  Stream<List<SavingsGoal>> watchGoals() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchGoalRows() => Stream.value(const []);
 
   @override
-  Stream<List<SavingEntry>> watchEntries() => Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> watchEntryRows() => Stream.value(const []);
 }
 
 class _FakeSettings extends SettingsRepository {
   @override
-  Stream<UserSettings> watch() => Stream.value(const UserSettings());
+  Stream<List<Map<String, dynamic>>> watchRows() => Stream.value(const []);
 }
 
 Future<void> _pump(
@@ -145,6 +144,8 @@ Future<void> _pump(
 }
 
 void main() {
+  setUp(() => LocalStore.instance = LocalStore.memory());
+
   testWidgets('finance has Overview / Bills / Savings / Income tabs', (
     tester,
   ) async {

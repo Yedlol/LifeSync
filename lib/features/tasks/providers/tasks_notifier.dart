@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/live_list_notifier.dart';
+import '../../../core/offline/cached_table.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../data/task_image_repository.dart';
 import '../data/task_repository.dart';
@@ -16,7 +17,7 @@ final taskImageRepositoryProvider = Provider<TaskImageRepository>(
   (_) => TaskImageRepository(),
 );
 
-/// All tasks, live, with optimistic moves/deletes.
+/// All tasks from the offline cache (kept live by Supabase realtime).
 final tasksProvider = NotifierProvider<TasksNotifier, AsyncValue<List<Task>>>(
   TasksNotifier.new,
 );
@@ -31,10 +32,10 @@ class TasksNotifier extends LiveListNotifier<Task> {
   }
 
   @override
-  Stream<List<Task>> watchSource() => _repo.watch();
+  CachedTable<Task> get table => TaskRepository.cache;
 
   @override
-  String idOf(Task item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchRows();
 
   /// Full column sorted by position, optionally excluding one task.
   List<Task> column(TaskStatus status, {String? excludeId}) =>
@@ -50,8 +51,7 @@ class TasksNotifier extends LiveListNotifier<Task> {
       position: _topOf(draft.status),
       completedAt: draft.isDone ? DateTime.now() : null,
     );
-    final saved = await _repo.create(t);
-    if (ref.mounted) upsertLocal(saved);
+    await _repo.create(t);
   }
 
   /// Saves edits. If the status changed, the task goes to the top of the
@@ -64,18 +64,14 @@ class TasksNotifier extends LiveListNotifier<Task> {
         completedAt: original.completedAtFor(edited.status),
       );
     }
-    final saved = await _repo.update(t);
-    if (ref.mounted) upsertLocal(saved);
+    await _repo.update(t);
   }
 
-  /// Deletes the task's Storage images first, then the task itself.
-  Future<void> delete(Task t) => optimistic(
-    removed: {t.id},
-    save: () async {
-      await ref.read(taskImageRepositoryProvider).deleteAllForTask(t.id);
-      await _repo.delete(t.id);
-    },
-  );
+  /// Queues removal of the task's Storage images first, then the task itself.
+  Future<void> delete(Task t) async {
+    await ref.read(taskImageRepositoryProvider).deleteAllForTask(t.id);
+    await _repo.delete(t.id);
+  }
 
   /// Drag & drop: move [task] into [to], between [aboveId] and [belowId]
   /// (ids of the visible neighbours; null = top/bottom).
@@ -84,7 +80,7 @@ class TasksNotifier extends LiveListNotifier<Task> {
     TaskStatus to, {
     String? aboveId,
     String? belowId,
-  }) {
+  }) async {
     final target = column(to, excludeId: task.id);
     final plan = planMove(
       column: [for (final t in target) (t.id, t.position)],
@@ -92,30 +88,16 @@ class TasksNotifier extends LiveListNotifier<Task> {
       aboveId: aboveId,
       belowId: belowId,
     );
-    final moved = task.copyWith(
-      status: to,
-      position: plan.position,
-      completedAt: task.completedAtFor(to),
-    );
-    final renumbered = [
-      for (final t in target)
-        if (plan.renumbered.containsKey(t.id))
-          t.copyWith(position: plan.renumbered[t.id]),
-    ];
-    return optimistic(
-      changed: [moved, ...renumbered],
-      save: () async {
-        if (plan.renumbered.isNotEmpty) {
-          await _repo.setPositions(plan.renumbered);
-        }
-        await _repo.move(
-          task.id,
-          to,
-          plan.position,
-          completedAt: moved.completedAt,
-        );
-      },
-    );
+    // Started together so the whole move lands in one frame.
+    await Future.wait([
+      if (plan.renumbered.isNotEmpty) _repo.setPositions(plan.renumbered),
+      _repo.move(
+        task.id,
+        to,
+        plan.position,
+        completedAt: task.completedAtFor(to),
+      ),
+    ]);
   }
 
   /// Menu "Move to": top of the target column.

@@ -1,16 +1,20 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/offline/cached_table.dart';
+import '../../../core/offline/local_store.dart';
 import '../../../core/supabase/supabase_config.dart';
 import '../../../core/utils/image_processing.dart';
 
 /// Storage bucket 'task-images' (private) + the task_images table.
+/// Uploading needs internet; rows and deletions go through the offline
+/// cache + outbox.
 ///
 /// Object path is `{user_id}/{task_id}/{uuid}.{ext}`; the first folder MUST be
 /// the user id (Storage policy). Descriptions store this path, never a URL.
 class TaskImageRepository {
   static const bucket = 'task-images';
-  static const _table = 'task_images';
+  static const _rows = OfflineWriter(Tables.taskImages);
   static const _urlTtl = Duration(hours: 1);
   // Refresh a bit early so a URL never expires while it is being loaded.
   static const _urlReuse = Duration(minutes: 50);
@@ -43,32 +47,24 @@ class TaskImageRepository {
       image.bytes,
       fileOptions: FileOptions(contentType: image.mime, upsert: false),
     );
-    if (record) {
-      try {
-        await registerImages(taskId, [path]);
-      } catch (_) {
-        await _storage.remove([path]).catchError((_) => <FileObject>[]);
-        rethrow;
-      }
-    }
+    if (record) await registerImages(taskId, [path]);
     return path;
   }
 
-  /// Inserts task_images rows (the task must already exist).
-  Future<void> registerImages(String taskId, Iterable<String> paths) async {
-    final rows = [
-      for (final p in paths) {'task_id': taskId, 'storage_path': p},
-    ];
-    if (rows.isNotEmpty) await supabaseClient.from(_table).insert(rows);
-  }
+  /// Records task_images rows. Queued in the outbox after the task's own
+  /// upsert, so the task row exists on the server first.
+  Future<void> registerImages(String taskId, Iterable<String> paths) =>
+      Future.wait([
+        for (final p in paths)
+          _rows.upsert(clientId(), {'task_id': taskId, 'storage_path': p}),
+      ]);
 
-  Future<Set<String>> _recordedPaths(String taskId) async {
-    final rows = await supabaseClient
-        .from(_table)
-        .select('storage_path')
-        .eq('task_id', taskId);
-    return {for (final r in rows) r['storage_path'] as String};
-  }
+  /// Paths recorded for [taskId] (from the offline cache).
+  Set<String> _recordedPaths(String taskId) => {
+    for (final r in LocalStore.instance.rows(Tables.taskImages))
+      if (r['task_id'] == taskId && r['storage_path'] is String)
+        r['storage_path'] as String,
+  };
 
   /// Brings Storage + task_images in line with [usedPaths] (the images that are
   /// in the saved Delta): removed images are deleted from both, and images that
@@ -79,7 +75,7 @@ class TaskImageRepository {
     required Set<String> usedPaths,
     Set<String> uploadedThisSession = const {},
   }) async {
-    final recorded = await _recordedPaths(taskId);
+    final recorded = _recordedPaths(taskId);
     final prefix = '${folderFor(taskId)}/';
     final unused = {...recorded, ...uploadedThisSession}.difference(usedPaths);
     final missing = usedPaths
@@ -89,32 +85,26 @@ class TaskImageRepository {
     if (unused.isNotEmpty) await deletePaths(taskId, unused);
   }
 
-  /// Removes [paths] from Storage first, then their task_images rows.
+  /// Queues removal of [paths] from Storage first, then their task_images
+  /// rows (works offline; runs on the next sync).
   Future<void> deletePaths(String taskId, Iterable<String> paths) async {
     final list = paths.toList();
     if (list.isEmpty) return;
-    await _storage.remove(list);
-    await supabaseClient
-        .from(_table)
-        .delete()
-        .eq('task_id', taskId)
-        .inFilter('storage_path', list);
+    await queueStorageRemove(bucket: bucket, paths: list);
+    await Future.wait([
+      for (final p in list)
+        _rows.deleteWhere({'task_id': taskId, 'storage_path': p}),
+    ]);
     for (final p in list) {
       _urlCache.remove(p);
     }
   }
 
-  /// Deletes every file of a task (recorded or orphaned) and its rows.
+  /// Queues deletion of every file in the task's folder (recorded or
+  /// orphaned) and its rows.
   Future<void> deleteAllForTask(String taskId) async {
-    final recorded = await _recordedPaths(taskId);
-    final folder = folderFor(taskId);
-    final inFolder = await _storage.list(path: folder);
-    final all = {
-      ...recorded,
-      for (final f in inFolder)
-        if (f.id != null) '$folder/${f.name}',
-    };
-    await deletePaths(taskId, all);
+    await queueStorageRemove(bucket: bucket, folder: folderFor(taskId));
+    await _rows.deleteWhere({'task_id': taskId});
   }
 
   /// Signed URL (valid 1 hour), cached in memory. Plain http(s) values are

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/offline/sync_service.dart';
 import '../../../providers/tasks_notifier.dart';
 import 'image_viewer.dart';
 
 /// Shows an image from its storage path: signed URL (1h, cached) with a
-/// loading placeholder and a broken-image icon on error.
+/// loading placeholder and a broken-image icon on error (cloud icon while
+/// offline; images already shown this session stay in Flutter's cache).
 class StorageImage extends ConsumerStatefulWidget {
   const StorageImage({super.key, required this.path, this.fit = BoxFit.cover});
   final String path;
@@ -33,17 +35,23 @@ class _StorageImageState extends ConsumerState<StorageImage> {
 
   @override
   Widget build(BuildContext context) {
+    // Not viewed before + offline: placeholder, reload once back online.
+    final online = ref.watch(isOnlineProvider);
+    ref.listen<bool>(isOnlineProvider, (was, now) {
+      if (now && was == false) _retry();
+    });
     return FutureBuilder<String>(
       future: _url,
       builder: (context, snap) {
-        if (snap.hasError) return _Broken(onRetry: _retry);
+        if (snap.hasError) return _Broken(onRetry: _retry, offline: !online);
         if (!snap.hasData) return const _Loading();
         return Image.network(
           snap.data!,
           fit: widget.fit,
           loadingBuilder: (context, child, progress) =>
               progress == null ? child : const _Loading(),
-          errorBuilder: (context, _, _) => _Broken(onRetry: _retry),
+          errorBuilder: (context, _, _) =>
+              _Broken(onRetry: _retry, offline: !online),
         );
       },
     );
@@ -66,8 +74,9 @@ class _Loading extends StatelessWidget {
 }
 
 class _Broken extends StatelessWidget {
-  const _Broken({required this.onRetry});
+  const _Broken({required this.onRetry, this.offline = false});
   final VoidCallback onRetry;
+  final bool offline;
   @override
   Widget build(BuildContext context) => InkWell(
     onTap: onRetry,
@@ -75,9 +84,14 @@ class _Broken extends StatelessWidget {
       height: 120,
       color: Colors.grey.shade200,
       alignment: Alignment.center,
-      child: Icon(
-        PhosphorIconsRegular.imageBroken,
-        color: Colors.grey.shade600,
+      child: Tooltip(
+        message: offline ? 'Image available when online' : 'Tap to retry',
+        child: Icon(
+          offline
+              ? PhosphorIconsRegular.cloudSlash
+              : PhosphorIconsRegular.imageBroken,
+          color: Colors.grey.shade600,
+        ),
       ),
     ),
   );

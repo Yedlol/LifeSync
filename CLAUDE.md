@@ -21,6 +21,10 @@ salary/overtime). Single user. Syncs between Android phone and Windows PC.
   Windows (no-op on web); shared_preferences for per-device reminder settings.
   Code in core/notifications/ (planner is pure + tested; NotificationService is the
   only thing that touches the plugin). Android uses inexact scheduling.
+- Offline-first: hive_ce + hive_ce_flutter (cache, records stored as JSON maps,
+  NO code generation / type adapters), connectivity_plus (online status),
+  path_provider (Hive lives in app-support dir, never OneDrive Documents).
+  Code in core/offline/. Web shares the same cache (IndexedDB) but can't cold-start offline.
 - Currency RM (MYR), timezone Asia/Kuala_Lumpur
 
 ## Database (already created in Supabase — do NOT write SQL unless asked)
@@ -52,6 +56,20 @@ lib/
 - Theme: Material 3, clean blue and white, primary #1E6FD9.
 - Files under ~300 lines; extract reused widgets.
 - All Supabase calls go through repository classes; UI never calls Supabase directly.
+- Offline rules (core/offline/):
+  - Providers read ONLY from the cache (LocalStore, one Hive box per table).
+    LiveListNotifier: Supabase realtime stream -> LocalStore.applySnapshot -> UI.
+  - Every write goes through OfflineWriter (cache first, then an outbox op);
+    never await the server in a write path. Ids are client UUIDs (clientId()).
+  - Upsert payloads are the full writable row (model.toJson()), never a partial
+    patch. Partial changes read the cached row, copyWith, then upsert.
+  - bill_payments upsert onConflict 'bill_id,period'; user_settings onConflict
+    'user_id'; child rows are deleted before parents (match deletes).
+  - Storage deletes are queued as storage_remove ops; uploads need internet
+    (UI disables image insert offline via isOnlineProvider).
+  - SyncService replays the outbox in order (network error = stop + backoff,
+    server rejection = failed list), then re-fetches all tables. Last write wins.
+  - Logout clears all boxes (AuthRepository.signOut).
 - Money formatted as "RM 1,234.50".
 - Don't add packages outside the stack without asking.
 - After each task, list files touched and how to test.

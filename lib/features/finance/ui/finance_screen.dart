@@ -6,6 +6,7 @@ import '../income/ui/income_screen.dart';
 import '../overview/ui/overview_screen.dart';
 import '../providers/finance_tab_provider.dart';
 import '../savings/ui/savings_screen.dart';
+import '../../../core/offline/ui/sync_indicator.dart';
 
 /// Finance tab: Overview / Bills / Savings / Income sub-tabs.
 class FinanceScreen extends ConsumerStatefulWidget {
@@ -49,6 +50,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finance'),
+        actions: const [SyncIndicator(), SizedBox(width: 8)],
         bottom: TabBar(
           controller: _tabs,
           tabs: const [

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/live_list_notifier.dart';
+import '../../../core/offline/cached_table.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../data/project_repository.dart';
 import '../models/project.dart';
@@ -9,7 +10,7 @@ final projectRepositoryProvider = Provider<ProjectRepository>(
   (_) => ProjectRepository(),
 );
 
-/// All projects (including archived), live.
+/// All projects (including archived), from the offline cache.
 final projectsProvider =
     NotifierProvider<ProjectsNotifier, AsyncValue<List<Project>>>(
       ProjectsNotifier.new,
@@ -26,26 +27,18 @@ class ProjectsNotifier extends LiveListNotifier<Project> {
   }
 
   @override
-  Stream<List<Project>> watchSource() => _repo.watch();
+  CachedTable<Project> get table => ProjectRepository.cache;
 
   @override
-  String idOf(Project item) => item.id;
+  Stream<List<Map<String, dynamic>>> watchRows() => _repo.watchRows();
 
-  Future<Project> create(String name, String color) async {
-    final p = await _repo.create(name: name, color: color);
-    if (ref.mounted) upsertLocal(p);
-    return p;
-  }
+  Future<Project> create(String name, String color) =>
+      _repo.create(name: name, color: color);
 
-  Future<void> save(Project p) async {
-    final saved = await _repo.update(p);
-    if (ref.mounted) upsertLocal(saved);
-  }
+  Future<void> save(Project p) => _repo.update(p);
 
-  Future<void> setArchived(Project p, bool archived) => optimistic(
-    changed: [p.copyWith(isArchived: archived)],
-    save: () => _repo.archive(p.id, archived: archived),
-  );
+  Future<void> setArchived(Project p, bool archived) =>
+      _repo.archive(p.id, archived: archived);
 }
 
 /// id -> project, including archived (so task tags still render).
